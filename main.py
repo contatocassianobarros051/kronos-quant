@@ -1,123 +1,337 @@
+import sqlite3
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-pydantic_import = True
-try:
-    from pydantic import BaseModel
-except ImportError:
-    pydantic_import = False
-
-import numpy as np
-import ccxt
-import pandas as pd
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI(
-    title="KRONOS QUANT API",
-    description="API Autónoma de Análise Técnica Avançada baseada em Bulkowski & TRADER",
-    version="2.0.0"
+    title="Kronos Quant - Autonomous Trading System",
+    version="3.0.0",
+    description="Sistema Autónomo com Base de Conhecimento Price Action para WDO e BTC."
 )
 
-# Configuração de CORS para permitir acesso externo de qualquer frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+DB_NAME = "kronos_quant.db"
 
-class AnalysisRequest(BaseModel if pydantic_import else object):
-    symbol: str = "BTC/USDT"
-    timeframe: str = "15m"
+# ==========================================
+# 1. BASE DE DADOS E CONHECIMENTO
+# ==========================================
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # Tabela de Sinais
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sinais_oraculo (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ativo TEXT,
+            preco REAL,
+            atr REAL,
+            tendencia_15m TEXT,
+            padrao_detetado TEXT,
+            viés TEXT,
+            guidance TEXT,
+            stop_loss REAL,
+            take_profit REAL,
+            timestamp TEXT
+        )
+    ''')
 
-# Inicialização da Exchange pública
-exchange = ccxt.binance({'enableRateLimit': True})
+    # Tabela de Conhecimento (Baseada nos seus PDFs)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS base_conhecimento_padroes (
+            nome_padrao TEXT PRIMARY KEY,
+            vies_mercado TEXT,
+            taxa_sucesso_bull REAL,
+            taxa_sucesso_bear REAL,
+            media_ganho REAL,
+            taticas_operacionais TEXT
+        )
+    ''')
+    
+    # Injetar o conhecimento extraído
+    padroes_conhecimento = [
+        ("Nenhum", "Depende do Fluxo", 50.0, 50.0, 2.0, "Operar a favor da tendência principal de 15m."),
+        ("Cup with Handle", "Bullish Continuation", 95.0, 93.0, 34.0, "Operar breakouts de alta. Padrões altos e com alças curtas performam melhor. Stop abaixo da alça."),
+        ("Bump-and-Run Reversal", "Bullish Reversal", 98.0, 99.0, 38.0, "Taxa de falha quase nula (2%). Evitar se houver throwback. Alvo no topo mais alto do padrão."),
+        ("Broadening Bottoms", "Reversal", 90.0, 91.0, 27.0, "Padrões largos e altos performam melhor. Entrar com partial decline."),
+        ("Ascending Broadening Wedge", "Bearish Reversal", 89.0, 86.0, 17.0, "Foco em downward breakouts. Partial rise avisa a queda 74% das vezes. Stop 0.15 acima do último minor high."),
+        ("Broadening Tops", "Bearish Reversal", 85.0, 97.0, 29.0, "Tendência a reverter. Rompimento para baixo em Bear Market tem taxa de falha de apenas 3%.")
+    ]
+    
+    cursor.executemany('''
+        INSERT OR IGNORE INTO base_conhecimento_padroes 
+        (nome_padrao, vies_mercado, taxa_sucesso_bull, taxa_sucesso_bear, media_ganho, taticas_operacionais)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', padroes_conhecimento)
+    
+    conn.commit()
+    conn.close()
 
-def fetch_market_matrix(symbol: str, timeframe: str) -> pd.DataFrame:
-    try:
-        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=100)
-        df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        # Cálculo de Indicadores de Base
-        df['tr'] = np.maximum(df['high'] - df['low'], np.maximum(abs(df['high'] - df['close'].shift(1)), abs(df['low'] - df['close'].shift(1))))
-        df['atr'] = df['tr'].rolling(window=14).mean()
-        return df.dropna().reset_index(drop=True)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao comunicar com a exchange: {str(e)}")
+init_db()
 
-@app.post("/api/analyze")
-def analyze_chart(req: AnalysisRequest):
-    """Endpoint principal de análise gráfica baseada em geometria vetorial."""
-    df = fetch_market_matrix(req.symbol, req.timeframe)
-    if df.empty:
-        raise HTTPException(status_code=400, detail="Não foi possível recuperar dados para o ativo.")
+# ==========================================
+# 2. MODELOS DE DADOS
+# ==========================================
+class AnaliseRequest(BaseModel):
+    ativo: str
+    preco_atual: float
+    atr: float
+    tendencia_15m: str
+    padrao_grafico: str = "Nenhum"
+
+# ==========================================
+# 3. MOTOR DO ORÁCULO
+# ==========================================
+@app.post("/api/analisar")
+def analisar_mercado(dados: AnaliseRequest):
+    ativo = dados.ativo.upper()
+    tendencia = dados.tendencia_15m.lower()
     
-    recent_highs = df['high'].tail(30).values
-    recent_lows = df['low'].tail(30).values
-    
-    # Regressão Linear para inclinação dos canais (Bulkowski Model)[cite: 1, 41]
-    slope_highs, _ = np.polyfit(np.arange(len(recent_highs)), recent_highs, 1)
-    slope_lows, _ = np.polyfit(np.arange(len(recent_lows)), recent_lows, 1)
-    
-    current_price = float(df.iloc[-1]['close'])
-    atr_val = float(df.iloc[-1]['atr'])
-    
-    # Definição do Estado Geométrico
-    if slope_lows > 0.05 and slope_highs > 0.05:
-        trend = "LTA (Linha de Tendência de Alta)"
-        bias = "BULLISH"
-    elif slope_lows < -0.05 and slope_highs < -0.05:
-        trend = "LTB (Linha de Tendência de Baixa)"
-        bias = "BEARISH"
+    if dados.atr <= 0 or dados.preco_atual <= 0:
+        raise HTTPException(status_code=400, detail="Preço e ATR devem ser maiores que zero.")
+
+    # Consultar o Conhecimento
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM base_conhecimento_padroes WHERE nome_padrao = ?', (dados.padrao_grafico,))
+    conhecimento = cursor.fetchone()
+    conn.close()
+
+    vies = "Neutro"
+    sl = dados.preco_atual
+    tp = dados.preco_atual
+    acao = "Aguardar"
+
+    if conhecimento and dados.padrao_grafico != "Nenhum":
+        taxa_acerto = conhecimento['taxa_sucesso_bull'] if tendencia == "alta" else conhecimento['taxa_sucesso_bear']
+        projecao_ganho = conhecimento['media_ganho']
+        taticas = conhecimento['taticas_operacionais']
+        
+        if "Bullish" in conhecimento['vies_mercado'] or (conhecimento['vies_mercado'] == "Reversal" and tendencia == "baixa"):
+            vies = f"COMPRA FORTE (Padrão: {dados.padrao_grafico})"
+            sl = dados.preco_atual - (dados.atr * 1.5)
+            tp = dados.preco_atual * (1 + (projecao_ganho / 100)) # Usa a média de ganho do PDF
+            acao = f"COMPRAR. Taxa de Acerto: {taxa_acerto}%. Tática: {taticas}"
+        else:
+            vies = f"VENDA FORTE (Padrão: {dados.padrao_grafico})"
+            sl = dados.preco_atual + (dados.atr * 1.5)
+            tp = dados.preco_atual * (1 - (projecao_ganho / 100))
+            acao = f"VENDER. Taxa de Acerto: {taxa_acerto}%. Tática: {taticas}"
     else:
-        trend = "CONSOLIDAÇÃO / ALARGAMENTO LATERAL"
-        bias = "NEUTRAL"
+        # Padrão básico WDO/BTC
+        if tendencia == "alta":
+            vies = "Bullish (Fluxo de Alta)"
+            sl = dados.preco_atual - (dados.atr * 1.5)
+            tp = dados.preco_atual + (dados.atr * 3.0)
+            acao = "COMPRAR - Baseado no fluxo direcional e ATR."
+        elif tendencia == "baixa":
+            vies = "Bearish (Fluxo de Baixa)"
+            sl = dados.preco_atual + (dados.atr * 1.5)
+            tp = dados.preco_atual - (dados.atr * 3.0)
+            acao = "VENDER - Baseado no fluxo direcional e ATR."
+
+    guidance = f"Oráculo detetou: {vies}. Stop Técnico: {sl:.2f}, Alvo Projetado: {tp:.2f}. {acao}"
+    timestamp_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Guardar no Histórico
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO sinais_oraculo (ativo, preco, atr, tendencia_15m, padrao_detetado, viés, guidance, stop_loss, take_profit, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (ativo, dados.preco_atual, dados.atr, dados.tendencia_15m, dados.padrao_grafico, vies, guidance, sl, tp, timestamp_atual))
+    conn.commit()
+    conn.close()
 
     return {
-        "symbol": req.symbol,
-        "timeframe": req.timeframe,
-        "current_price": current_price,
-        "trend_classification": trend,
-        "market_bias": bias,
-        "slope_metrics": {
-            "upper_channel_slope": round(float(slope_highs), 4),
-            "lower_channel_slope": round(float(slope_lows), 4)
-        },
-        "risk_parameters": {
-            "atr": round(atr_val, 2),
-            "recommended_stop": round(current_price - (1.5 * atr_val) if bias == "BULLISH" else current_price + (1.5 * atr_val), 2)
-        },
-        "trader_status": "ESTABILIZADO (L2 Divergence < 0.03)" # Validação TRADER[cite: 351, 357]
+        "status": "sucesso",
+        "ativo": ativo,
+        "vies": vies,
+        "stop_loss": round(sl, 2),
+        "take_profit": round(tp, 2),
+        "actionable_guidance": guidance
     }
 
-@app.post("/api/oracle")
-def query_oracle(req: AnalysisRequest):
-    """O Oráculo Inteligente: Consulta a base e determina o veredito LTA/LTB com suporte estatístico."""
-    res = analyze_chart(req)
-    bias = res["market_bias"]
-    trend = res["trend_classification"]
-    
-    oracle_response = {
-        "oracle_query": f"Estado estrutural para {req.symbol} em {req.timeframe}",
-        "verdict": trend,
-        "statistical_confidence": "78.4% (Base Bulkowski - Padrões de Alargamento e Reversão)" if bias != "NEUTRAL" else "52.0% (Aguardando definição de pivô)",
-"actionable_guidance": f"O Oráculo detetou um viés {bias}. Recomenda-se operar a favor do fluxo principal com gestão de risco baseada em ATR."
-    }
-    return oracle_response
+@app.get("/api/historico")
+def obter_historico():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM sinais_oraculo ORDER BY id DESC LIMIT 15')
+    linhas = cursor.fetchall()
+    conn.close()
+    return [dict(linha) for linha in linhas]
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-from fastapi import FastAPI
+# ==========================================
+# 4. FRONTEND VISUAL (DASHBOARD)
+# ==========================================
+@app.get("/", response_class=HTMLResponse)
+def dashboard_principal():
+    return """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kronos Quant - Terminal do Oráculo</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-6">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <header class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-emerald-400">⚡ KRONOS QUANT</h1>
+                    <p class="text-sm text-slate-400">Oráculo Quantitativo de Price Action | WDO & BTC</p>
+                </div>
+                <div class="bg-emerald-950 border border-emerald-800 px-4 py-2 rounded-lg text-emerald-300 text-sm font-semibold animate-pulse">
+                    ● IA Online
+                </div>
+            </header>
 
-app = FastAPI()
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4 md:col-span-1">
+                    <h2 class="text-xl font-bold text-slate-200">🤖 Solicitar Análise</h2>
+                    <div>
+                        <label class="block text-xs uppercase text-slate-400 mb-1">Ativo</label>
+                        <select id="ativo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+                            <option value="WDO">Dólar Futuro (WDO)</option>
+                            <option value="BTC">Bitcoin (BTC)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-slate-400 mb-1">Preço Atual</label>
+                        <input type="number" id="preco" step="any" value="5420.50" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-slate-400 mb-1">Volatilidade (ATR)</label>
+                        <input type="number" id="atr" step="any" value="12.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-slate-400 mb-1">Tendência 15m</label>
+                        <select id="tendencia" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+                            <option value="alta">Alta (Bullish)</option>
+                            <option value="baixa">Baixa (Bearish)</option>
+                            <option value="lateral">Lateral / Consolidado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-amber-400 font-bold mb-1">Padrão Gráfico (PDFs)</label>
+                        <select id="padrao_grafico" class="w-full bg-slate-950 border border-amber-700/50 rounded-lg p-2.5 text-amber-300">
+                            <option value="Nenhum">Nenhum / Não sei</option>
+                            <option value="Cup with Handle">Cup with Handle</option>
+                            <option value="Bump-and-Run Reversal">Bump-and-Run Reversal</option>
+                            <option value="Broadening Bottoms">Broadening Bottoms</option>
+                            <option value="Broadening Tops">Broadening Tops</option>
+                            <option value="Ascending Broadening Wedge">Ascending Broadening Wedge</option>
+                        </select>
+                    </div>
+                    <button onclick="enviarAnalise()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-3 rounded-lg transition duration-200">
+                        Consultar Oráculo 🔮
+                    </button>
+                </div>
 
-@app.get("/")
-def read_root():
-    return {"status": "online", "message": "Kronos Quant API a funcionar com sucesso!"}
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4 md:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-200 mb-3">📊 Veredito do Oráculo</h2>
+                        <div id="resultado" class="bg-slate-950 border border-slate-800 p-5 rounded-xl text-slate-300 min-h-[160px] flex items-center justify-center text-center text-sm">
+                            Aguardando leitura de mercado...
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-center">
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <span class="block text-xs text-slate-500">Viés Atual</span>
+                            <span id="res-vies" class="font-bold text-emerald-400">-</span>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <span class="block text-xs text-slate-500">Stop Loss</span>
+                            <span id="res-sl" class="font-bold text-rose-400">-</span>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <span class="block text-xs text-slate-500">Alvo (Take Profit)</span>
+                            <span id="res-tp" class="font-bold text-cyan-400">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-app = FastAPI()
+            <!-- Histórico -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                <h2 class="text-xl font-bold text-slate-200">📜 Histórico de Sinais</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-950 text-slate-400 uppercase text-xs border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Data</th>
+                                <th class="p-3">Ativo</th>
+                                <th class="p-3">Padrão</th>
+                                <th class="p-3">Viés</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-historico">
+                            <tr><td colspan="4" class="p-4 text-center text-slate-500">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-@app.get("/")
-def read_root():
-    return FileResponse("index.html")
+        <script>
+            async function enviarAnalise() {
+                const dados = {
+                    ativo: document.getElementById('ativo').value,
+                    preco_atual: parseFloat(document.getElementById('preco').value),
+                    atr: parseFloat(document.getElementById('atr').value),
+                    tendencia_15m: document.getElementById('tendencia').value,
+                    padrao_grafico: document.getElementById('padrao_grafico').value
+                };
+
+                const resDiv = document.getElementById('resultado');
+                resDiv.innerHTML = '<span class="text-yellow-400 animate-pulse">Consultando Conhecimento da Enciclopédia...</span>';
+
+                try {
+                    const response = await fetch('/api/analisar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dados)
+                    });
+                    const json = await response.json();
+
+                    if (response.ok) {
+                        resDiv.innerHTML = `<p class="text-left font-medium text-slate-200 leading-relaxed">${json.actionable_guidance}</p>`;
+                        document.getElementById('res-vies').innerText = json.vies;
+                        document.getElementById('res-sl').innerText = json.stop_loss;
+                        document.getElementById('res-tp').innerText = json.take_profit;
+                        carregarHistorico();
+                    } else {
+                        resDiv.innerHTML = `<span class="text-rose-400">Erro: Verifique os valores inseridos.</span>`;
+                    }
+                } catch (err) {
+                    resDiv.innerHTML = `<span class="text-rose-400">Erro de ligação.</span>`;
+                }
+            }
+
+            async function carregarHistorico() {
+                try {
+                    const response = await fetch('/api/historico');
+                    const historico = await response.json();
+                    const tbody = document.getElementById('tabela-historico');
+                    
+                    if (historico.length === 0) return;
+
+                    tbody.innerHTML = historico.map(h => `
+                        <tr class="border-b border-slate-800 hover:bg-slate-950/50">
+                            <td class="p-3 text-xs text-slate-400">${h.timestamp}</td>
+                            <td class="p-3 font-bold text-emerald-400">${h.ativo}</td>
+                            <td class="p-3 text-amber-300 text-xs">${h.padrao_detetado}</td>
+                            <td class="p-3 text-xs text-slate-200">${h.viés}</td>
+                        </tr>
+                    `).join('');
+                } catch (e) { console.error("Erro histórico", e); }
+            }
+            carregarHistorico();
+        </script>
+    </body>
+    </html>
+    """
