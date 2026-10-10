@@ -99,7 +99,7 @@ def query_oracle(req: AnalysisRequest):
         "oracle_query": f"Estado estrutural para {req.symbol} em {req.timeframe}",
         "verdict": trend,
         "statistical_confidence": "78.4% (Base Bulkowski - Padrões de Alargamento e Reversão)" if bias != "NEUTRAL" else "52.0% (Aguardando definição de pivô)",
-        "actionable_guidance": fO Oráculo detetou um viés {bias}. Recomenda-se operar a favor do fluxo principal com gestão de risco baseada em ATR."
+"actionable_guidance": f"O Oráculo detetou um viés {bias}. Recomenda-se operar a favor do fluxo principal com gestão de risco baseada em ATR."
     }
     return oracle_response
 
