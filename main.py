@@ -198,3 +198,23 @@ async def process_quant_analysis(req: QuantRequest):
     except Exception as e:
         logger.error(f"Falha Crítica no Motor: {str(e)}")
         raise HTTPException(status_code=500, detail="Erro Interno no Processamento Quantitativo")
+class QuantRequest(BaseModel):
+    symbol: str = "BTC/USDT"
+    timeframe: str = "5m"
+    capital_usd: float = 1000.0  # Capital base para cálculo de Risco (Position Sizing)
+
+# ---> COLOQUE O BLOCO NOVO AQUI:
+@app.get("/")
+async def root_health_check():
+    return {
+        "status": "KRONOS QUANT CORE ONLINE",
+        "version": "4.0.0",
+        "message": "Servidor Institucional Ativo. Motor Bayesiano e L2 a aguardar comunicação do Terminal Web."
+    }
+# <--- FIM DO BLOCO NOVO
+
+# ==============================================================================
+# MÓDULOS DE MATEMÁTICA FINANCEIRA AVANÇADA (Numpy/Pandas puros)
+# ==============================================================================
+def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
+# ... (resto do código que já lá está) ...
