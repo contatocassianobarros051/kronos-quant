@@ -3,261 +3,248 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KRONOS // Autonomous Quantitative & TRADER Engine</title>
+  <title>KRONOS QUANT // Confirmação Perfeita (Live WSS)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030508; color: #e2e8f0; }
-    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-    .glass-panel { background: rgba(10, 15, 25, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(0, 242, 254, 0.15); }
-    .neon-cyan { box-shadow: 0 0 25px rgba(0, 242, 254, 0.2); }
-    .neon-emerald { box-shadow: 0 0 25px rgba(0, 245, 160, 0.2); }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 242, 254, 0.3); border-radius: 3px; }
+    body { font-family: 'JetBrains Mono', monospace; background-color: #04101d; color: #fff; margin: 0; padding: 0; overflow: hidden; }
+    .header-bar { background-color: #02080f; border-bottom: 2px solid #00f2fe; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .badge { background: #ffe600; color: #000; padding: 4px 10px; font-weight: bold; border-radius: 4px; font-size: 14px; text-transform: uppercase; }
+    .panel { background-color: rgba(10, 20, 35, 0.9); border: 1px solid #1e3a5f; padding: 15px; border-radius: 8px; }
+    #chart-container { width: 100vw; height: calc(100vh - 75px); position: relative; }
+    .status-pulse { display: inline-block; width: 10px; height: 10px; background-color: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
   </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 md:p-6 overflow-x-hidden selection:bg-cyan-400 selection:text-black">
+<body>
 
-  <!-- Header -->
-  <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-cyan-950/60 gap-4">
-    <div class="flex items-center gap-3.5">
-      <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center text-black font-extrabold text-2xl font-mono-code neon-cyan">
-        K
+  <!-- Cabeçalho Principal -->
+  <div class="header-bar">
+    <div class="flex items-center gap-4">
+      <span class="badge">CONFIRMAÇÃO PERFEITA</span>
+      <h1 class="text-lg font-bold text-cyan-400">KRONOS AUTÔNOMO <span class="text-white">| LEITURA EM TEMPO REAL</span></h1>
+    </div>
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2">
+        <span class="text-slate-400 text-sm">Ativo:</span>
+        <select id="symbol" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
+          <option value="BTCUSDT" selected>BTC/USDT</option>
+          <option value="ETHUSDT">ETH/USDT</option>
+          <option value="SOLUSDT">SOL/USDT</option>
+        </select>
       </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xl font-extrabold tracking-wider text-white">KRONOS-QUANT<span class="text-cyan-400 font-mono-code text-[10px] ml-2 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800/40">BULKOWSKI & TRADER AI</span></h1>
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-        </div>
-        <p class="text-xs text-slate-400 font-mono-code">GEOMETRIA VETORIAL DE PREÇOS & ANÁLISE DE DIVERGÊNCIA DE ESTADO LATENTE</p>
+      <div class="flex items-center gap-2">
+        <span class="text-slate-400 text-sm">Tempo:</span>
+        <select id="timeframe" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
+          <option value="5m" selected>5 Minutos</option>
+          <option value="15m">15 Minutos</option>
+          <option value="1h">1 Hora</option>
+        </select>
+      </div>
+      <div class="text-sm flex items-center gap-2">
+        <span class="status-pulse"></span> <span id="ws-status" class="text-emerald-400 font-bold">WSS ONLINE</span>
       </div>
     </div>
-
-    <div class="flex items-center gap-4 text-xs font-mono-code bg-slate-900/90 px-4 py-2.5 rounded-xl border border-slate-800">
-      <div><span class="text-slate-500">MÉTODO:</span> <span class="text-cyan-400 font-bold">REGRESSÃO + L2 LOSS</span></div>
-      <div class="h-4 w-px bg-slate-700"></div>
-      <div><span class="text-slate-500">ESTADO DO ORÁCULO:</span> <span class="text-emerald-400 font-bold">ATIVO (15M)</span></div>
-    </div>
-  </header>
-
-  <!-- Main Grid Container -->
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
-    
-    <!-- Left Column: Parameters & Model Controls -->
-    <div class="lg:col-span-1 flex flex-col gap-6">
-      
-      <!-- Control Hub -->
-      <div class="glass-panel rounded-2xl p-5 flex flex-col gap-4">
-        <h2 class="text-xs font-mono-code font-bold tracking-widest text-cyan-400 border-b border-slate-800 pb-2">PARÂMETROS DE EXECUÇÃO</h2>
-        
-        <div>
-          <label class="text-xs text-slate-400 block mb-1 font-mono-code">ATIVO MONITORADO:</label>
-          <input id="input-symbol" type="text" value="BTC/USDT" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-mono-code focus:outline-none focus:border-cyan-400">
-        </div>
-
-        <div>
-          <label class="text-xs text-slate-400 block mb-1 font-mono-code">TIMEFRAME (INTRADAY):</label>
-          <select id="input-timeframe" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-mono-code focus:outline-none focus:border-cyan-400">
-            <option value="15m" selected>15 Minutos (Day Trade)</option>
-            <option value="1h">1 Hora (Swing Trade)</option>
-            <option value="4h">4 Horas (Posicional)</option>
-          </select>
-        </div>
-
-        <button onclick="runEngineAnalysis()" class="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold font-mono-code text-xs rounded-xl hover:opacity-90 transition-all neon-cyan shadow-lg">
-          EXECUTAR VARREDURA DO ORÁCULO
-        </button>
-      </div>
-
-      <!-- TRADER Latent State Monitor Card -->
-      <div class="glass-panel rounded-2xl p-5 flex flex-col gap-3">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <span class="text-xs font-mono-code font-bold tracking-widest text-emerald-400">MONITOR TRADER (ICSE'20)</span>
-          <span class="text-[9px] font-mono-code text-slate-500">LATENT STATE</span>
-        </div>
-        <p class="text-[11px] text-slate-400">Verificação de divergência L2 em tempo real para eliminação de falsos rompimentos (*whipsaws*).</p>
-        
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-900 font-mono-code text-xs space-y-2">
-          <div class="flex justify-between">
-            <span class="text-slate-500">Divergência L2:</span>
-            <span id="trader-l2" class="text-cyan-400 font-bold">0.0028 (Estável)</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Dimensões Defeituosas:</span>
-            <span class="text-emerald-400 font-bold">0 detetadas</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Filtro de Falha 5%:</span>
-            <span class="text-emerald-400 font-bold">Ativo (Seguro)</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Center & Right Columns: Live Telemetry, Chart Simulation & Oracle Verdict -->
-    <div class="lg:col-span-3 flex flex-col gap-6">
-      
-      <!-- Live Metrics Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass-panel rounded-2xl p-4 font-mono-code">
-          <span class="text-[10px] text-slate-500 block">PREÇO ATUAL</span>
-          <span id="metric-price" class="text-lg font-bold text-white">$85,377.79</span>
-        </div>
-        <div class="glass-panel rounded-2xl p-4 font-mono-code">
-          <span class="text-[10px] text-slate-500 block">RSI (14)</span>
-          <span id="metric-rsi" class="text-lg font-bold text-cyan-400">60.78</span>
-        </div>
-        <div class="glass-panel rounded-2xl p-4 font-mono-code">
-          <span class="text-[10px] text-slate-500 block">VOLUME RELATIVO</span>
-          <span id="metric-vol" class="text-lg font-bold text-amber-400">0.67x</span>
-        </div>
-        <div class="glass-panel rounded-2xl p-4 font-mono-code">
-          <span class="text-[10px] text-slate-500 block">VOLATILIDADE (ATR)</span>
-          <span id="metric-atr" class="text-lg font-bold text-emerald-400">$110.71</span>
-        </div>
-      </div>
-
-      <!-- Main Graphical Chart Area -->
-      <div class="glass-panel rounded-2xl p-5 flex flex-col gap-4 relative">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <span class="text-xs font-mono-code font-bold tracking-widest text-slate-300">ANÁLISE GEOMÉTRICA DE PREÇO (BULKOWSKI MODEL)</span>
-          <span class="text-[10px] font-mono-code text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-800/40">TEMPO REAL 15M</span>
-        </div>
-
-        <!-- Canvas simulation -->
-        <div class="relative w-full h-[320px] bg-slate-950 rounded-xl overflow-hidden border border-slate-900">
-          <canvas id="mainChart" class="w-full h-full block"></canvas>
-          <div class="absolute top-3 left-4 font-mono-code text-xs bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg text-cyan-300">
-            INCLINAÇÃO FUNDOS: <span id="slope-low" class="text-rose-400">-0.2749</span> | TOPOS: <span id="slope-high" class="text-emerald-400">+0.5568</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Oracle Verdict Box -->
-      <div class="glass-panel rounded-2xl p-6 flex flex-col gap-3 neon-emerald">
-        <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
-          <span class="text-sm font-bold font-mono-code text-emerald-400">🔮 VEREDITO DO ORÁCULO INTELIGENTE (LTA / LTB / MEGAPHONE)</span>
-        </div>
-        <div id="oracle-verdict-text" class="font-mono-code text-sm text-slate-200 leading-relaxed">
-          Aguardando processamento de dados da Binance. Clique em "Executar Varredura do Oráculo" para carregar a matriz matemática atualizada.
-        </div>
-        <div class="flex flex-wrap gap-4 pt-2 text-xs font-mono-code text-slate-400" id="oracle-recommendation-details">
-          <div><span class="text-slate-500">Stop-Loss OCO:</span> <span id="rec-stop" class="text-rose-400">---</span></div>
-          <div><span class="text-slate-500">Take-Profit Alvo:</span> <span id="rec-tp" class="text-emerald-400">---</span></div>
-          <div><span class="text-slate-500">Expectativa Matemática:</span> <span class="text-cyan-400">+2.41 R</span></div>
-        </div>
-      </div>
-
-    </div>
-
   </div>
 
-  <!-- JavaScript Integration Engine -->
+  <!-- Contentor do Gráfico -->
+  <div id="chart-container">
+    <!-- Painel Lateral de Informação do Oráculo Flutuante -->
+    <div class="absolute top-4 right-16 z-10 w-80 panel shadow-2xl shadow-cyan-900/20">
+      <h3 class="text-cyan-400 font-bold text-sm mb-3 border-b border-slate-700 pb-2">DIAGNÓSTICO VETORIAL KRONOS</h3>
+      <div class="space-y-2 text-xs text-slate-300">
+        <div class="flex justify-between"><span>Preço Atual:</span> <span id="lbl-price" class="text-white font-bold">--</span></div>
+        <div class="flex justify-between"><span>Alvo (Target):</span> <span id="lbl-target" class="text-emerald-400 font-bold">--</span></div>
+        <div class="flex justify-between"><span>Entrada (Compra):</span> <span id="lbl-entry" class="text-yellow-400 font-bold">--</span></div>
+        <div class="flex justify-between"><span>Stop-Loss:</span> <span id="lbl-stop" class="text-red-400 font-bold">--</span></div>
+        <div class="mt-3 pt-2 border-t border-slate-700">
+          <span class="text-cyan-500 font-bold block mb-1">Ação do Algoritmo:</span>
+          <span id="lbl-status" class="text-slate-300">Aguardando dados...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const canvas = document.getElementById("mainChart");
-    const ctx = canvas.getContext("2d");
+    // 1. Configuração Estética do Gráfico (Baseado na sua imagem Dark Blue)
+    const chartOptions = {
+      layout: { background: { type: 'solid', color: '#051c2a' }, textColor: '#d1d5db' },
+      grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      timeScale: { timeVisible: true, borderColor: '#1e3a5f' },
+      rightPriceScale: { borderColor: '#1e3a5f' }
+    };
 
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = rect.height * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    }
-    window.addEventListener("resize", drawStaticChart);
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), chartOptions);
 
-    function drawStaticChart() {
-      resizeCanvas();
-      const rect = canvas.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
+    // 2. Séries de Dados (Velas e Linhas de Anotação)
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#00ff00', downColor: '#ff0000', 
+      borderVisible: false, wickUpColor: '#00ff00', wickDownColor: '#ff0000'
+    });
 
-      ctx.clearRect(0, 0, w, h);
+    // Resistência Topo (Azul grosso)
+    const resistanceLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 8 });
+    // Suporte Fundo (Azul grosso)
+    const supportLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 8 });
+    
+    // Linhas do Canal Descendente
+    const channelTop = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
+    const channelBot = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
 
-      // Grid de Fundo
-      ctx.strokeStyle = "rgba(30, 41, 59, 0.4)";
-      ctx.lineWidth = 1;
-      for (let y = 40; y < h; y += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
+    // Linhas de Operação (Alvo, Compra, Stop)
+    const targetLine = chart.addLineSeries({ color: '#10b981', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
+    const entryLine = chart.addLineSeries({ color: '#facc15', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
+    const stopLine = chart.addLineSeries({ color: '#ef4444', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
+
+    let binanceWs = null;
+    let klinesData = [];
+    let currentSymbol = 'BTCUSDT';
+    let currentInterval = '5m';
+
+    // 3. Motor Lógico: Analisar e Desenhar em Tempo Real
+    function analyzeAndDraw(data) {
+      if (data.length < 60) return;
+      
+      const recent = data.slice(-60);
+      const times = recent.map(d => d.time);
+      const highs = recent.map(d => d.high);
+      const lows = recent.map(d => d.low);
+      const closes = recent.map(d => d.close);
+      
+      const lastCandle = recent[recent.length - 1];
+      const currentPrice = lastCandle.close;
+
+      // Encontrar Máxima e Mínima do período para Resistência e Suporte
+      const highestHigh = Math.max(...highs);
+      const lowestLow = Math.min(...lows);
+      const highestIndex = highs.indexOf(highestHigh);
+      const lowestIndex = lows.indexOf(lowestLow);
+
+      // A) Desenhar Retângulos Azuis (Resistência e Suporte) simulados por linhas grossas
+      resistanceLine.setData([
+        { time: times[Math.max(0, highestIndex - 5)], value: highestHigh },
+        { time: times[Math.min(times.length - 1, highestIndex + 15)], value: highestHigh }
+      ]);
+      
+      supportLine.setData([
+        { time: times[Math.max(0, lowestIndex - 10)], value: lowestLow },
+        { time: times[times.length - 1], value: lowestLow }
+      ]);
+
+      // B) Desenhar Canal de Baixa (Regressão ou inclinação simples)
+      const slope = (lowestLow - highestHigh) / (times.length * 0.8);
+      const midTime = Math.floor(times.length / 2);
+      
+      channelTop.setData([
+        { time: times[highestIndex], value: highestHigh },
+        { time: times[times.length - 5], value: highestHigh + (slope * (times.length - 5 - highestIndex)) }
+      ]);
+      
+      channelBot.setData([
+        { time: times[highestIndex], value: highestHigh - (highestHigh - lowestLow)*0.6 },
+        { time: times[times.length - 5], value: (highestHigh - (highestHigh - lowestLow)*0.6) + (slope * (times.length - 5 - highestIndex)) }
+      ]);
+
+      // C) Calcular Regras de Medição Bulkowski
+      // A entrada é no rompimento da resistência local/suporte. O Stop é abaixo dos "múltiplos pavios". O alvo é a projeção da altura.
+      const structHeight = highestHigh - lowestLow;
+      const entryPrice = lowestLow + (structHeight * 0.35); // Simulando a linha amarela "Compras"
+      const stopPrice = lowestLow - (structHeight * 0.05);  // Simulando a linha vermelha "Stop"
+      const targetPrice = entryPrice + structHeight;        // Simulando a linha verde "Alvo"
+
+      targetLine.setData([{ time: times[times.length - 10], value: targetPrice }, { time: times[times.length - 1], value: targetPrice }]);
+      entryLine.setData([{ time: times[times.length - 10], value: entryPrice }, { time: times[times.length - 1], value: entryPrice }]);
+      stopLine.setData([{ time: times[times.length - 10], value: stopPrice }, { time: times[times.length - 1], value: stopPrice }]);
+
+      // D) Inserir Marcadores de Texto exatos da Imagem
+      const markers = [];
+      
+      // "Forte resistência" no topo
+      markers.push({ time: times[highestIndex], position: 'aboveBar', color: '#fff', shape: 'arrowDown', text: 'Forte resistência' });
+      // "Múltiplos pavios" no fundo
+      markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#fff', shape: 'arrowUp', text: 'Múltiplos pavios distorcendo\no topo anterior, alta pressão.' });
+      
+      // Detetar "Forte fuga" se o preço cruzou a linha de entrada amarela recentemente
+      if (currentPrice > entryPrice) {
+        markers.push({ time: times[times.length - 2], position: 'belowBar', color: '#00ff00', shape: 'arrowUp', text: 'Forte fuga e topo mais alto,\ntentativa de reversão.' });
+        document.getElementById('lbl-status').innerHTML = '<span class="text-emerald-400 font-bold">ROMPIMENTO DETETADO! Tendência de Alta confirmada.</span>';
+      } else {
+        document.getElementById('lbl-status').innerHTML = 'A testar liquidez na zona de suporte. Aguardando fuga...';
       }
 
-      // Desenhar Velas Simuladas com base nos dados reais conhecidos ($85,377)
-      const points = 35;
-      const step = w / points;
-      let currentY = h * 0.5;
+      candleSeries.setMarkers(markers);
 
-      ctx.lineWidth = 2;
-      for (let i = 0; i < points; i++) {
-        const x = i * step + 15;
-        // Alargamento (Megaphone simulation)
-        const envelope = Math.sin(i * 0.35) * (i * 2.2);
-        const open = currentY + envelope + (Math.random() - 0.5) * 15;
-        const close = open + (Math.random() - 0.48) * 25;
-        const high = Math.min(open, close) - Math.random() * 12 - 5;
-        const low = Math.max(open, close) + Math.random() * 12 + 5;
+      // Atualizar Textos do Oráculo no HTML
+      document.getElementById('lbl-price').textContent = currentPrice.toFixed(2);
+      document.getElementById('lbl-target').textContent = targetPrice.toFixed(2);
+      document.getElementById('lbl-entry').textContent = entryPrice.toFixed(2);
+      document.getElementById('lbl-stop').textContent = stopPrice.toFixed(2);
+    }
 
-        const isUp = close <= open; // Invertido para o canvas screen coordinate
-        ctx.strokeStyle = isUp ? "#00f5a0" : "#f43f5e";
-        ctx.fillStyle = isUp ? "rgba(0, 245, 160, 0.8)" : "rgba(244, 63, 94, 0.8)";
-
-        // Wick
-        ctx.beginPath();
-        ctx.moveTo(x, high);
-        ctx.lineTo(x, low);
-        ctx.stroke();
-
-        // Body
-        ctx.fillRect(x - 3, Math.min(open, close), 6, Math.max(2, Math.abs(close - open)));
-        currentY = close;
+    // 4. Integração Binance (REST para histórico, WSS para Live)
+    async function loadHistoryAndStartLive() {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=150`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        klinesData = data.map(d => ({
+          time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+        }));
+        candleSeries.setData(klinesData);
+        analyzeAndDraw(klinesData);
+        connectWebSocket();
+      } catch (e) {
+        console.error("Erro Binance API:", e);
       }
-
-      // Linhas de Tendência Convergentes/Divergentes (Megaphone / Broadening)
-      ctx.strokeStyle = "#00f2fe";
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(15, h * 0.7);
-      ctx.lineTo(w - 15, h * 0.2); // Top slope up
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(15, h * 0.4);
-      ctx.lineTo(w - 15, h * 0.85); // Bottom slope down
-      ctx.stroke();
-      ctx.restore();
     }
 
-    async function runEngineAnalysis() {
-      const symbol = document.getElementById('input-symbol').value;
-      const timeframe = document.getElementById('input-timeframe').value;
-      
-      // Simulação em tempo real baseada nos valores exatos obtidos no seu Colab
-      document.getElementById('metric-price').textContent = "$85,377.79";
-      document.getElementById('metric-rsi').textContent = "60.78";
-      document.getElementById('metric-vol').textContent = "0.67x";
-      document.getElementById('metric-atr').textContent = "$110.71";
-      
-      document.getElementById('slope-low').textContent = "-0.2749";
-      document.getElementById('slope-high').textContent = "+0.5568";
+    function connectWebSocket() {
+      if (binanceWs) binanceWs.close();
+      const wsUrl = `wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_${currentInterval}`;
+      binanceWs = new WebSocket(wsUrl);
 
-      document.getElementById('oracle-verdict-text').innerHTML = `
-        <strong>VEREDITO:</strong> Consolidação / Alargamento Lateral (Megaphone / Broadening Formation) 🟡<br>
-        <em>Análise Vetorial:</em> A inclinação dos fundos (-0.2749) e dos topos (+0.5568) indica divergência estrutural e volatilidade em expansão. O modelo TRADER confirmou que o estado latente L2 está estável (0.0028), isolando o ruído de 15m.
-      `;
+      binanceWs.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        const kline = msg.k;
+        const candle = {
+          time: kline.t / 1000, open: parseFloat(kline.o), high: parseFloat(kline.h), low: parseFloat(kline.l), close: parseFloat(kline.c)
+        };
+        
+        candleSeries.update(candle);
+        
+        // Atualiza o último candle no nosso array de histórico
+        if (klinesData.length > 0 && klinesData[klinesData.length - 1].time === candle.time) {
+          klinesData[klinesData.length - 1] = candle;
+        } else {
+          klinesData.push(candle);
+          if (klinesData.length > 200) klinesData.shift();
+        }
 
-      document.getElementById('rec-stop').textContent = "$85,211.72";
-      document.getElementById('rec-tp').textContent = "$85,710.00";
+        // Recalcular toda a geometria a cada "tick" de preço (Oráculo em Tempo Real)
+        analyzeAndDraw(klinesData);
+      };
 
-      drawStaticChart();
+      binanceWs.onclose = () => {
+        document.getElementById('ws-status').textContent = 'RECONECTANDO...';
+        document.getElementById('ws-status').className = 'text-yellow-400 font-bold';
+        setTimeout(connectWebSocket, 3000);
+      };
     }
 
-    // Executar ao carregar
-    drawStaticChart();
+    // Eventos de alteração de Par e Timeframe
+    document.getElementById('symbol').addEventListener('change', (e) => { currentSymbol = e.target.value; loadHistoryAndStartLive(); });
+    document.getElementById('timeframe').addEventListener('change', (e) => { currentInterval = e.target.value; loadHistoryAndStartLive(); });
+
+    // Ajuste de ecrã dinâmico
+    window.addEventListener('resize', () => {
+      chart.applyOptions({ width: document.getElementById('chart-container').clientWidth, height: document.getElementById('chart-container').clientHeight });
+    });
+
+    // Iniciar
+    loadHistoryAndStartLive();
+
   </script>
 </body>
 </html>
