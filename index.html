@@ -3,127 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KRONOS QUANT // Confirmação Perfeita (Live WSS)</title>
+  <title>KRONOS QUANT // Terminal Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'JetBrains Mono', monospace; background-color: #04101d; color: #fff; margin: 0; padding: 0; overflow: hidden; }
-    .header-bar { background-color: #02080f; border-bottom: 2px solid #00f2fe; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .badge { background: #ffe600; color: #000; padding: 4px 10px; font-weight: bold; border-radius: 4px; font-size: 14px; text-transform: uppercase; }
-    .panel { background-color: rgba(10, 20, 35, 0.9); border: 1px solid #1e3a5f; padding: 15px; border-radius: 8px; }
-    #chart-container { width: 100vw; height: calc(100vh - 75px); position: relative; }
-    .status-pulse { display: inline-block; width: 10px; height: 10px; background-color: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+    body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f3f4f6; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    .neon-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.6); }
+    .neon-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+    
+    /* Scrollbar personalizada para o painel lateral */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .pulse-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
   </style>
 </head>
 <body>
 
-  <!-- Cabeçalho Principal -->
-  <div class="header-bar">
+  <!-- NAVBAR SUPERIOR -->
+  <header class="h-16 glass-panel border-b-0 border-slate-800 flex items-center justify-between px-6 shrink-0 z-20 shadow-lg">
     <div class="flex items-center gap-4">
-      <span class="badge">CONFIRMAÇÃO PERFEITA</span>
-      <h1 class="text-lg font-bold text-cyan-400">KRONOS AUTÔNOMO <span class="text-white">| LEITURA EM TEMPO REAL</span></h1>
+      <div class="w-10 h-10 rounded bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center font-bold text-lg font-mono shadow-[0_0_15px_rgba(6,182,212,0.5)] text-white">
+        K
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-wider text-white">KRONOS <span class="text-cyan-400 font-mono text-xs border border-cyan-800 bg-cyan-950/50 px-2 py-0.5 rounded ml-2">PRO TERMINAL</span></h1>
+        <p class="text-[11px] text-slate-400 font-mono uppercase tracking-widest">Motor Bulkowski & MME Integrado</p>
+      </div>
     </div>
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-2">
-        <span class="text-slate-400 text-sm">Ativo:</span>
-        <select id="symbol" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
+
+    <div class="flex items-center gap-4 font-mono text-sm">
+      <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-lg p-1.5">
+        <select id="symbol" class="bg-transparent text-white outline-none cursor-pointer px-2">
           <option value="BTCUSDT" selected>BTC/USDT</option>
           <option value="ETHUSDT">ETH/USDT</option>
           <option value="SOLUSDT">SOL/USDT</option>
         </select>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-slate-400 text-sm">Tempo:</span>
-        <select id="timeframe" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
-          <option value="5m" selected>5 Minutos</option>
-          <option value="15m">15 Minutos</option>
-          <option value="1h">1 Hora</option>
+        <span class="text-slate-600">|</span>
+        <select id="timeframe" class="bg-transparent text-cyan-400 font-bold outline-none cursor-pointer px-2">
+          <option value="1m">1m</option>
+          <option value="5m" selected>5m</option>
+          <option value="15m">15m</option>
+          <option value="1h">1H</option>
         </select>
       </div>
-      <div class="text-sm flex items-center gap-2">
-        <span class="status-pulse"></span> <span id="ws-status" class="text-emerald-400 font-bold">WSS ONLINE</span>
+      
+      <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-2">
+        <span class="pulse-dot"></span>
+        <span id="ws-status" class="text-emerald-400 font-bold text-xs uppercase tracking-wider">Online</span>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Contentor do Gráfico -->
-  <div id="chart-container">
-    <!-- Painel Lateral de Informação do Oráculo Flutuante -->
-    <div class="absolute top-4 right-16 z-10 w-80 panel shadow-2xl shadow-cyan-900/20">
-      <h3 class="text-cyan-400 font-bold text-sm mb-3 border-b border-slate-700 pb-2">DIAGNÓSTICO VETORIAL KRONOS</h3>
-      <div class="space-y-2 text-xs text-slate-300">
-        <div class="flex justify-between"><span>Preço Atual:</span> <span id="lbl-price" class="text-white font-bold">--</span></div>
-        <div class="flex justify-between"><span>Alvo (Target):</span> <span id="lbl-target" class="text-emerald-400 font-bold">--</span></div>
-        <div class="flex justify-between"><span>Entrada (Compra):</span> <span id="lbl-entry" class="text-yellow-400 font-bold">--</span></div>
-        <div class="flex justify-between"><span>Stop-Loss:</span> <span id="lbl-stop" class="text-red-400 font-bold">--</span></div>
-        <div class="mt-3 pt-2 border-t border-slate-700">
-          <span class="text-cyan-500 font-bold block mb-1">Ação do Algoritmo:</span>
-          <span id="lbl-status" class="text-slate-300">Aguardando dados...</span>
+  <!-- CORPO PRINCIPAL (Sidebar + Gráfico) -->
+  <div class="flex flex-1 overflow-hidden">
+    
+    <!-- PAINEL TÁTICO LATERAL (Oráculo & Coordenadas) -->
+    <aside class="w-80 glass-panel border-r border-slate-800 flex flex-col z-10 shrink-0">
+      
+      <!-- Preço ao Vivo -->
+      <div class="p-6 border-b border-slate-800/50 flex flex-col items-center justify-center bg-slate-900/40">
+        <span class="text-xs text-slate-400 font-mono uppercase tracking-widest mb-1">Preço Atual (Binance)</span>
+        <div class="text-3xl font-bold font-mono text-white tracking-tight flex items-center gap-2">
+          <span class="text-slate-500 text-xl">$</span><span id="lbl-price">---.--</span>
         </div>
       </div>
-    </div>
+
+      <!-- Coordenadas da Operação -->
+      <div class="p-5 border-b border-slate-800/50">
+        <h2 class="text-xs font-bold text-cyan-500 font-mono mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+          COORDENADAS DA OPERAÇÃO
+        </h2>
+        <div class="space-y-3 font-mono text-sm">
+          <div class="flex justify-between items-center p-2 rounded bg-emerald-950/30 border border-emerald-900/50">
+            <span class="text-slate-400 text-xs">ALVO (Take-Profit)</span>
+            <span id="lbl-target" class="text-emerald-400 font-bold">---</span>
+          </div>
+          <div class="flex justify-between items-center p-2 rounded bg-yellow-950/30 border border-yellow-900/50">
+            <span class="text-slate-400 text-xs">ENTRADA (Rompimento)</span>
+            <span id="lbl-entry" class="text-yellow-400 font-bold">---</span>
+          </div>
+          <div class="flex justify-between items-center p-2 rounded bg-rose-950/30 border border-rose-900/50">
+            <span class="text-slate-400 text-xs">STOP-LOSS (Defesa)</span>
+            <span id="lbl-stop" class="text-rose-400 font-bold">---</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnóstico do Algoritmo -->
+      <div class="p-5 flex-1 overflow-y-auto">
+        <h2 class="text-xs font-bold text-purple-400 font-mono mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          VEREDITO DO ORÁCULO
+        </h2>
+        
+        <div id="status-container" class="bg-slate-900/60 border border-slate-700 rounded-lg p-4 font-mono text-xs text-slate-300 leading-relaxed shadow-inner">
+          <div class="animate-pulse flex gap-2 items-center text-cyan-500">
+            <div class="w-2 h-2 bg-cyan-500 rounded-full"></div> Analisando fluxo vetorial...
+          </div>
+        </div>
+
+        <!-- Legenda Visual -->
+        <div class="mt-6 space-y-2 text-[10px] font-mono text-slate-500 bg-black/20 p-3 rounded border border-slate-800">
+          <div class="flex items-center gap-2"><div class="w-3 h-1 bg-orange-500 rounded"></div> MME 5 Períodos</div>
+          <div class="flex items-center gap-2"><div class="w-3 h-1 bg-pink-500 rounded"></div> MME 20 Períodos</div>
+          <div class="flex items-center gap-2"><div class="w-3 h-1 bg-sky-500 rounded"></div> Zonas de Suporte/Resistência</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA DO GRÁFICO -->
+    <main id="chart-container" class="flex-1 relative bg-[#060a14]"></main>
+
   </div>
 
   <script>
-    // 1. Configuração Estética do Gráfico (Baseado na sua imagem Dark Blue)
+    // --- 1. CONFIGURAÇÃO DO GRÁFICO TRADINGVIEW ---
     const chartOptions = {
-      layout: { background: { type: 'solid', color: '#051c2a' }, textColor: '#d1d5db' },
-      grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+      layout: { background: { type: 'solid', color: '#060a14' }, textColor: '#94a3b8' },
+      grid: { vertLines: { color: 'rgba(30, 41, 59, 0.5)' }, horzLines: { color: 'rgba(30, 41, 59, 0.5)' } },
       crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-      timeScale: { timeVisible: true, borderColor: '#1e3a5f' },
-      rightPriceScale: { borderColor: '#1e3a5f' }
+      timeScale: { timeVisible: true, borderColor: '#1e293b' },
+      rightPriceScale: { borderColor: '#1e293b' }
     };
 
-    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), chartOptions);
+    const chartContainer = document.getElementById('chart-container');
+    const chart = LightweightCharts.createChart(chartContainer, chartOptions);
 
-    // 2. Séries de Dados (Velas e Linhas de Anotação)
+    // Série Principal (Velas)
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#00ff00', downColor: '#ff0000', 
-      borderVisible: false, wickUpColor: '#00ff00', wickDownColor: '#ff0000'
+      upColor: '#10b981', downColor: '#ef4444', 
+      borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#ef4444'
     });
 
-    // Resistência Topo (Azul grosso)
-    const resistanceLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 8 });
-    // Suporte Fundo (Azul grosso)
-    const supportLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 8 });
-    
-    // Linhas do Canal Descendente
-    const channelTop = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
-    const channelBot = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
+    // Séries Analíticas (MMEs)
+    const ema5Line = chart.addLineSeries({ color: '#f97316', lineWidth: 1.5 }); // Laranja MME5
+    const ema20Line = chart.addLineSeries({ color: '#ec4899', lineWidth: 1.5 }); // Rosa MME20
 
-    // Linhas de Operação (Alvo, Compra, Stop)
+    // Séries Geométricas (Suportes, Canais)
+    const resistanceLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 4 }); // Resistência Superior
+    const supportLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 4 });    // Suporte Inferior
+    const channelTop = chart.addLineSeries({ color: '#475569', lineWidth: 1, lineStyle: 2 });
+    const channelBot = chart.addLineSeries({ color: '#475569', lineWidth: 1, lineStyle: 2 });
+
+    // Séries de Ordem (Alvo, Entrada, Stop)
     const targetLine = chart.addLineSeries({ color: '#10b981', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
     const entryLine = chart.addLineSeries({ color: '#facc15', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
     const stopLine = chart.addLineSeries({ color: '#ef4444', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed });
 
+    // Variáveis Globais
     let binanceWs = null;
     let klinesData = [];
     let currentSymbol = 'BTCUSDT';
     let currentInterval = '5m';
 
-    // 3. Motor Lógico: Analisar e Desenhar em Tempo Real
-    // --- SÉRIES ADICIONAIS PARA O SEU GRÁFICO ---
-    // (Adicione estas linhas logo abaixo de onde declarou a targetLine e stopLine)
-    const ema5Line = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1, title: 'MME5' }); // Laranja
-    const ema20Line = chart.addLineSeries({ color: '#ec4899', lineWidth: 1, title: 'MME20' }); // Rosa
+    // Ajuste responsivo do gráfico
+    new ResizeObserver(() => {
+      chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
+    }).observe(chartContainer);
 
-    // --- FUNÇÃO DE COORDENADAS E INTELIGÊNCIA ARTIFICIAL ---
+
+    // --- 2. O MOTOR KRONOS (Inteligência & Matemática) ---
     function analyzeAndDraw(data) {
       if (data.length < 60) return;
-      const recent = data.slice(-60);
+      
+      const recent = data.slice(-60); // Analisa as últimas 60 velas
       const times = recent.map(d => d.time);
       const highs = recent.map(d => d.high);
       const lows = recent.map(d => d.low);
       const closes = recent.map(d => d.close);
-      const opens = recent.map(d => d.open);
       
       const lastCandle = recent[recent.length - 1];
       const prevCandle = recent[recent.length - 2];
       const currentPrice = lastCandle.close;
 
-      // 1. CÁLCULO DE MÉDIAS MÓVEIS (MME5 e MME20 das imagens)
+      // Atualiza Preço Grande na UI
+      document.getElementById('lbl-price').textContent = currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+      // A) CÁLCULO DAS MÉDIAS MÓVEIS EXPONENCIAIS (MME)
       const calculateEMA = (period) => {
         const k = 2 / (period + 1);
         let emaArray = [];
@@ -137,81 +201,157 @@
       ema5Line.setData(calculateEMA(5));
       ema20Line.setData(calculateEMA(20));
 
-      // 2. MAPEAMENTO DE ESTRUTURA (Suportes e Resistências)
+      // B) MAPEAMENTO DE ESTRUTURA (Zonas de Liquidez)
       const highestHigh = Math.max(...highs);
       const lowestLow = Math.min(...lows);
       const highestIndex = highs.indexOf(highestHigh);
       const lowestIndex = lows.indexOf(lowestLow);
 
-      // Coordenadas das Caixas Azuis (Resistência e Suporte)
       resistanceLine.setData([
         { time: times[Math.max(0, highestIndex - 5)], value: highestHigh },
         { time: times[Math.min(times.length - 1, highestIndex + 15)], value: highestHigh }
       ]);
       supportLine.setData([
-        { time: times[Math.max(0, lowestIndex - 10)], value: lowestLow },
+        { time: times[Math.max(0, lowestIndex - 5)], value: lowestLow },
         { time: times[times.length - 1], value: lowestLow }
       ]);
 
-      // 3. COORDENADAS DE OPERAÇÃO (A Matemática da Fuga)
-      // Baseado na altura do canal de baixa
+      // C) COORDENADAS DE OPERAÇÃO (Matemática da Fuga Bulkowski)
       const structHeight = highestHigh - lowestLow;
-      
-      // Coordenada de Compra (Amarela): 25% acima do fundo, rompendo a micro-resistência
-      const entryPrice = lowestLow + (structHeight * 0.25); 
-      // Coordenada de Stop (Vermelha): Abaixo dos múltiplos pavios do fundo
-      const stopPrice = lowestLow - (structHeight * 0.05);  
-      // Coordenada de Alvo (Verde): Projeção de 2 vezes o risco (Risk/Reward 1:2)
-      const targetPrice = entryPrice + ((entryPrice - stopPrice) * 2);        
+      const entryPrice = lowestLow + (structHeight * 0.25); // Compra 25% acima do fundo
+      const stopPrice = lowestLow - (structHeight * 0.05);  // Stop 5% abaixo do fundo
+      const targetPrice = entryPrice + ((entryPrice - stopPrice) * 2); // Alvo 2:1 R/R
 
+      // Atualiza Linhas no Gráfico (Exibe nas últimas 15 velas para não poluir)
       targetLine.setData([{ time: times[times.length - 15], value: targetPrice }, { time: times[times.length - 1], value: targetPrice }]);
       entryLine.setData([{ time: times[times.length - 15], value: entryPrice }, { time: times[times.length - 1], value: entryPrice }]);
       stopLine.setData([{ time: times[times.length - 15], value: stopPrice }, { time: times[times.length - 1], value: stopPrice }]);
 
-      // 4. DETEÇÃO DE PADRÕES (Inteligência Visual)
-      const markers = [];
-      let statusText = "Aguardando setup de reversão...";
-      let statusColor = "text-slate-300";
+      // Atualiza Coordenadas na UI lateral
+      document.getElementById('lbl-target').textContent = targetPrice.toFixed(2);
+      document.getElementById('lbl-entry').textContent = entryPrice.toFixed(2);
+      document.getElementById('lbl-stop').textContent = stopPrice.toFixed(2);
 
-      // Marca a "Forte resistência"
+      // D) DETEÇÃO DE PADRÕES E MARCADORES VISUAIS
+      const markers = [];
+      let statusHtml = "";
+
+      // 1. Marca Forte Resistência
       markers.push({ time: times[highestIndex], position: 'aboveBar', color: '#0ea5e9', shape: 'arrowDown', text: 'Forte resistência' });
       
-      // Avalia "Múltiplos pavios" (Pressão compradora no fundo)
+      // 2. Múltiplos Pavios (Rejeição de fundo)
       const wickSize = Math.abs(recent[lowestIndex].low - Math.min(recent[lowestIndex].open, recent[lowestIndex].close));
       const bodySize = Math.abs(recent[lowestIndex].open - recent[lowestIndex].close);
       if (wickSize > bodySize * 1.5) {
-        markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#fff', shape: 'arrowUp', text: 'Múltiplos pavios distorcendo' });
+        markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#94a3b8', shape: 'arrowUp', text: 'Múltiplos pavios' });
+        statusHtml += "<div class='text-slate-400 mb-2'>↳ Pressão compradora detetada no fundo (Pavios longos).</div>";
       }
 
-      // Avalia "Inside Bar" e "Spinning Top"
+      // 3. Padrões de Candlestick (Inside Bar / Spinning Top)
       const isInsideBar = lastCandle.high < prevCandle.high && lastCandle.low > prevCandle.low;
-      const isSpinningTop = Math.abs(lastCandle.open - lastCandle.close) < (lastCandle.high - lastCandle.low) * 0.3; // Corpo pequeno
+      const isSpinningTop = Math.abs(lastCandle.open - lastCandle.close) < (lastCandle.high - lastCandle.low) * 0.3; 
 
       if (isInsideBar) {
-        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#facc15', shape: 'circle', text: 'Inside Bar (Dúvida)' });
+        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#facc15', shape: 'circle', text: 'Inside Bar' });
+        statusHtml += "<div class='text-yellow-400 mb-2'>↳ Inside Bar formada. Mercado em contração/dúvida.</div>";
       } else if (isSpinningTop) {
-        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#a855f7', shape: 'circle', text: 'Spinning Top (Peão)' });
+        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#a855f7', shape: 'circle', text: 'Spinning Top' });
+        statusHtml += "<div class='text-purple-400 mb-2'>↳ Spinning Top (Peão). Possível reversão à vista.</div>";
       }
 
-      // Detetar "Forte fuga" e Cruzamento de Médias
+      // 4. Gatilho de Fuga e Cruzamento MME
       const currentEma5 = ema5Line.data().slice(-1)[0].value;
       const currentEma20 = ema20Line.data().slice(-1)[0].value;
       const isEmaBullish = currentEma5 > currentEma20;
 
-      if (currentPrice > entryPrice && isEmaBullish) {
-        markers.push({ time: lastCandle.time, position: 'belowBar', color: '#10b981', shape: 'arrowUp', text: 'Forte fuga + MME5 cruzou MME20' });
-        statusText = "ROMPIMENTO CONFIRMADO! Modo Compra Ativado.";
-        statusColor = "text-emerald-400 font-bold";
+      if (currentPrice > entryPrice) {
+        if (isEmaBullish) {
+          markers.push({ time: lastCandle.time, position: 'belowBar', color: '#10b981', shape: 'arrowUp', text: 'Forte fuga + MME5 > MME20' });
+          statusHtml += "<div class='text-emerald-400 font-bold mt-2 p-2 bg-emerald-950/50 rounded border border-emerald-900'>🚀 ROMPIMENTO CONFIRMADO! MME5 cruzou acima da MME20. Condição ideal de Compra.</div>";
+        } else {
+          statusHtml += "<div class='text-yellow-500 mt-2 p-2 bg-yellow-950/50 rounded border border-yellow-900'>⚠️ Preço acima da entrada, mas MME5 ainda não cruzou. Cuidado com falsa fuga.</div>";
+        }
+      } else {
+         statusHtml += "<div class='text-slate-500 mt-2 italic'>Aguardando rompimento da linha de entrada amarela...</div>";
       }
 
       candleSeries.setMarkers(markers);
-
-      // Atualiza o Painel do Oráculo com as Coordenadas Exatas
-      document.getElementById('lbl-price').textContent = currentPrice.toFixed(2);
-      document.getElementById('lbl-target').textContent = targetPrice.toFixed(2);
-      document.getElementById('lbl-entry').textContent = entryPrice.toFixed(2);
-      document.getElementById('lbl-stop').textContent = stopPrice.toFixed(2);
-      
-      const statusElement = document.getElementById('lbl-status');
-      statusElement.innerHTML = `<span class="${statusColor}">${statusText}</span>`;
+      document.getElementById('status-container').innerHTML = statusHtml || "<div class='text-slate-500 italic'>Consolidando histórico e aguardando setup tático...</div>";
     }
+
+
+    // --- 3. CONEXÃO DE DADOS (Binance REST + WSS) ---
+    async function loadHistoryAndStartLive() {
+      // Limpa gráfico ao mudar de par
+      candleSeries.setData([]);
+      document.getElementById('status-container').innerHTML = "<div class='animate-pulse flex gap-2 items-center text-cyan-500'><div class='w-2 h-2 bg-cyan-500 rounded-full'></div> Sincronizando Binance...</div>";
+
+      const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=200`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        klinesData = data.map(d => ({
+          time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+        }));
+        
+        candleSeries.setData(klinesData);
+        analyzeAndDraw(klinesData);
+        connectWebSocket();
+      } catch (e) { 
+        console.error("Erro Binance API:", e); 
+        document.getElementById('status-container').innerHTML = "<div class='text-rose-500'>Erro ao conectar com a Binance API REST.</div>";
+      }
+    }
+
+    function connectWebSocket() {
+      if (binanceWs) binanceWs.close();
+      const wsStatus = document.getElementById('ws-status');
+      
+      const wsUrl = `wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_${currentInterval}`;
+      binanceWs = new WebSocket(wsUrl);
+
+      binanceWs.onopen = () => {
+        wsStatus.textContent = 'ONLINE';
+        wsStatus.className = 'text-emerald-400 font-bold text-xs uppercase tracking-wider';
+      };
+
+      binanceWs.onmessage = (event) => {
+        const kline = JSON.parse(event.data).k;
+        const candle = { 
+          time: kline.t / 1000, 
+          open: parseFloat(kline.o), 
+          high: parseFloat(kline.h), 
+          low: parseFloat(kline.l), 
+          close: parseFloat(kline.c) 
+        };
+        
+        candleSeries.update(candle);
+        
+        // Mantém array atualizado para o Motor calcular os dados ao vivo
+        if (klinesData.length > 0 && klinesData[klinesData.length - 1].time === candle.time) {
+          klinesData[klinesData.length - 1] = candle;
+        } else {
+          klinesData.push(candle);
+          if (klinesData.length > 300) klinesData.shift();
+        }
+        
+        // Roda o motor matemático a cada novo "tick" de preço
+        analyzeAndDraw(klinesData);
+      };
+
+      binanceWs.onclose = () => {
+        wsStatus.textContent = 'RECONECTANDO...';
+        wsStatus.className = 'text-yellow-500 font-bold text-xs uppercase tracking-wider';
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    // Eventos dos Menus Superiores
+    document.getElementById('symbol').addEventListener('change', (e) => { currentSymbol = e.target.value; loadHistoryAndStartLive(); });
+    document.getElementById('timeframe').addEventListener('change', (e) => { currentInterval = e.target.value; loadHistoryAndStartLive(); });
+
+    // Início do App
+    loadHistoryAndStartLive();
+  </script>
+</body>
+</html>
