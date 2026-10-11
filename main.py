@@ -1,337 +1,199 @@
-import sqlite3
-from datetime import datetime
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-from typing import Optional
+from IPython.display import display, HTML
+import html
 
-app = FastAPI(
-    title="Kronos Quant - Autonomous Trading System",
-    version="3.0.0",
-    description="Sistema Autónomo com Base de Conhecimento Price Action para WDO e BTC."
-)
+# Código HTML exato
+codigo_html = """
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>KRONOS QUANT // Confirmação Perfeita (Live WSS)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'JetBrains Mono', monospace; background-color: #04101d; color: #fff; margin: 0; padding: 0; overflow: hidden; height: 700px; }
+    .header-bar { background-color: #02080f; border-bottom: 2px solid #00f2fe; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .badge { background: #ffe600; color: #000; padding: 4px 10px; font-weight: bold; border-radius: 4px; font-size: 14px; text-transform: uppercase; }
+    .panel { background-color: rgba(10, 20, 35, 0.9); border: 1px solid #1e3a5f; padding: 15px; border-radius: 8px; }
+    #chart-container { width: 100%; height: 600px; position: relative; } 
+    .status-pulse { display: inline-block; width: 10px; height: 10px; background-color: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+  </style>
+</head>
+<body>
+  <div class="header-bar flex-wrap gap-4">
+    <div class="flex items-center gap-4">
+      <span class="badge">CONFIRMAÇÃO PERFEITA</span>
+      <h1 class="text-sm md:text-lg font-bold text-cyan-400">KRONOS <span class="text-white">| LIVE</span></h1>
+    </div>
+    <div class="flex items-center gap-4 text-xs md:text-sm">
+      <select id="symbol" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
+        <option value="BTCUSDT" selected>BTC/USDT</option>
+        <option value="ETHUSDT">ETH/USDT</option>
+      </select>
+      <select id="timeframe" class="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 outline-none">
+        <option value="5m" selected>5 Minutos</option>
+        <option value="15m">15 Min</option>
+      </select>
+      <div class="flex items-center gap-2">
+        <span class="status-pulse"></span> <span id="ws-status" class="text-emerald-400 font-bold">ONLINE</span>
+      </div>
+    </div>
+  </div>
 
-DB_NAME = "kronos_quant.db"
+  <div id="chart-container">
+    <div class="absolute top-4 right-4 z-10 w-64 panel shadow-2xl shadow-cyan-900/20 text-xs">
+      <h3 class="text-cyan-400 font-bold mb-2 border-b border-slate-700 pb-1">DIAGNÓSTICO VETORIAL</h3>
+      <div class="space-y-1 text-slate-300">
+        <div class="flex justify-between"><span>Preço Atual:</span> <span id="lbl-price" class="text-white font-bold">--</span></div>
+        <div class="flex justify-between"><span>Alvo (Target):</span> <span id="lbl-target" class="text-emerald-400 font-bold">--</span></div>
+        <div class="flex justify-between"><span>Entrada (Buy):</span> <span id="lbl-entry" class="text-yellow-400 font-bold">--</span></div>
+        <div class="flex justify-between"><span>Stop-Loss:</span> <span id="lbl-stop" class="text-red-400 font-bold">--</span></div>
+        <div class="mt-2 pt-2 border-t border-slate-700">
+          <span class="text-cyan-500 font-bold block mb-1">Ação Algoritmo:</span>
+          <span id="lbl-status" class="text-slate-300">Aguardando dados...</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-# ==========================================
-# 1. BASE DE DADOS E CONHECIMENTO
-# ==========================================
-def init_db():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # Tabela de Sinais
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sinais_oraculo (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ativo TEXT,
-            preco REAL,
-            atr REAL,
-            tendencia_15m TEXT,
-            padrao_detetado TEXT,
-            viés TEXT,
-            guidance TEXT,
-            stop_loss REAL,
-            take_profit REAL,
-            timestamp TEXT
-        )
-    ''')
+  <script>
+    const chartOptions = {
+      layout: { background: { type: 'solid', color: '#051c2a' }, textColor: '#d1d5db' },
+      grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      timeScale: { timeVisible: true, borderColor: '#1e3a5f' },
+      rightPriceScale: { borderColor: '#1e3a5f' }
+    };
 
-    # Tabela de Conhecimento (Baseada nos seus PDFs)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS base_conhecimento_padroes (
-            nome_padrao TEXT PRIMARY KEY,
-            vies_mercado TEXT,
-            taxa_sucesso_bull REAL,
-            taxa_sucesso_bear REAL,
-            media_ganho REAL,
-            taticas_operacionais TEXT
-        )
-    ''')
-    
-    # Injetar o conhecimento extraído
-    padroes_conhecimento = [
-        ("Nenhum", "Depende do Fluxo", 50.0, 50.0, 2.0, "Operar a favor da tendência principal de 15m."),
-        ("Cup with Handle", "Bullish Continuation", 95.0, 93.0, 34.0, "Operar breakouts de alta. Padrões altos e com alças curtas performam melhor. Stop abaixo da alça."),
-        ("Bump-and-Run Reversal", "Bullish Reversal", 98.0, 99.0, 38.0, "Taxa de falha quase nula (2%). Evitar se houver throwback. Alvo no topo mais alto do padrão."),
-        ("Broadening Bottoms", "Reversal", 90.0, 91.0, 27.0, "Padrões largos e altos performam melhor. Entrar com partial decline."),
-        ("Ascending Broadening Wedge", "Bearish Reversal", 89.0, 86.0, 17.0, "Foco em downward breakouts. Partial rise avisa a queda 74% das vezes. Stop 0.15 acima do último minor high."),
-        ("Broadening Tops", "Bearish Reversal", 85.0, 97.0, 29.0, "Tendência a reverter. Rompimento para baixo em Bear Market tem taxa de falha de apenas 3%.")
-    ]
-    
-    cursor.executemany('''
-        INSERT OR IGNORE INTO base_conhecimento_padroes 
-        (nome_padrao, vies_mercado, taxa_sucesso_bull, taxa_sucesso_bear, media_ganho, taticas_operacionais)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', padroes_conhecimento)
-    
-    conn.commit()
-    conn.close()
+    const chart = LightweightCharts.createChart(document.getElementById('chart-container'), chartOptions);
 
-init_db()
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#00ff00', downColor: '#ff0000', 
+      borderVisible: false, wickUpColor: '#00ff00', wickDownColor: '#ff0000'
+    });
 
-# ==========================================
-# 2. MODELOS DE DADOS
-# ==========================================
-class AnaliseRequest(BaseModel):
-    ativo: str
-    preco_atual: float
-    atr: float
-    tendencia_15m: str
-    padrao_grafico: str = "Nenhum"
+    const resistanceLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 6 });
+    const supportLine = chart.addLineSeries({ color: '#0ea5e9', lineWidth: 6 });
+    const channelTop = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
+    const channelBot = chart.addLineSeries({ color: '#ffffff', lineWidth: 1 });
+    const targetLine = chart.addLineSeries({ color: '#10b981', lineWidth: 2, lineStyle: 2 });
+    const entryLine = chart.addLineSeries({ color: '#facc15', lineWidth: 2, lineStyle: 2 });
+    const stopLine = chart.addLineSeries({ color: '#ef4444', lineWidth: 2, lineStyle: 2 });
 
-# ==========================================
-# 3. MOTOR DO ORÁCULO
-# ==========================================
-@app.post("/api/analisar")
-def analisar_mercado(dados: AnaliseRequest):
-    ativo = dados.ativo.upper()
-    tendencia = dados.tendencia_15m.lower()
-    
-    if dados.atr <= 0 or dados.preco_atual <= 0:
-        raise HTTPException(status_code=400, detail="Preço e ATR devem ser maiores que zero.")
+    let binanceWs = null;
+    let klinesData = [];
+    let currentSymbol = 'BTCUSDT';
+    let currentInterval = '5m';
 
-    # Consultar o Conhecimento
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM base_conhecimento_padroes WHERE nome_padrao = ?', (dados.padrao_grafico,))
-    conhecimento = cursor.fetchone()
-    conn.close()
+    function analyzeAndDraw(data) {
+      if (data.length < 60) return;
+      const recent = data.slice(-60);
+      const times = recent.map(d => d.time);
+      const highs = recent.map(d => d.high);
+      const lows = recent.map(d => d.low);
+      const currentPrice = recent[recent.length - 1].close;
 
-    vies = "Neutro"
-    sl = dados.preco_atual
-    tp = dados.preco_atual
-    acao = "Aguardar"
+      const highestHigh = Math.max(...highs);
+      const lowestLow = Math.min(...lows);
+      const highestIndex = highs.indexOf(highestHigh);
+      const lowestIndex = lows.indexOf(lowestLow);
 
-    if conhecimento and dados.padrao_grafico != "Nenhum":
-        taxa_acerto = conhecimento['taxa_sucesso_bull'] if tendencia == "alta" else conhecimento['taxa_sucesso_bear']
-        projecao_ganho = conhecimento['media_ganho']
-        taticas = conhecimento['taticas_operacionais']
-        
-        if "Bullish" in conhecimento['vies_mercado'] or (conhecimento['vies_mercado'] == "Reversal" and tendencia == "baixa"):
-            vies = f"COMPRA FORTE (Padrão: {dados.padrao_grafico})"
-            sl = dados.preco_atual - (dados.atr * 1.5)
-            tp = dados.preco_atual * (1 + (projecao_ganho / 100)) # Usa a média de ganho do PDF
-            acao = f"COMPRAR. Taxa de Acerto: {taxa_acerto}%. Tática: {taticas}"
-        else:
-            vies = f"VENDA FORTE (Padrão: {dados.padrao_grafico})"
-            sl = dados.preco_atual + (dados.atr * 1.5)
-            tp = dados.preco_atual * (1 - (projecao_ganho / 100))
-            acao = f"VENDER. Taxa de Acerto: {taxa_acerto}%. Tática: {taticas}"
-    else:
-        # Padrão básico WDO/BTC
-        if tendencia == "alta":
-            vies = "Bullish (Fluxo de Alta)"
-            sl = dados.preco_atual - (dados.atr * 1.5)
-            tp = dados.preco_atual + (dados.atr * 3.0)
-            acao = "COMPRAR - Baseado no fluxo direcional e ATR."
-        elif tendencia == "baixa":
-            vies = "Bearish (Fluxo de Baixa)"
-            sl = dados.preco_atual + (dados.atr * 1.5)
-            tp = dados.preco_atual - (dados.atr * 3.0)
-            acao = "VENDER - Baseado no fluxo direcional e ATR."
+      resistanceLine.setData([
+        { time: times[Math.max(0, highestIndex - 5)], value: highestHigh },
+        { time: times[Math.min(times.length - 1, highestIndex + 15)], value: highestHigh }
+      ]);
+      
+      supportLine.setData([
+        { time: times[Math.max(0, lowestIndex - 10)], value: lowestLow },
+        { time: times[times.length - 1], value: lowestLow }
+      ]);
 
-    guidance = f"Oráculo detetou: {vies}. Stop Técnico: {sl:.2f}, Alvo Projetado: {tp:.2f}. {acao}"
-    timestamp_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      const slope = (lowestLow - highestHigh) / (times.length * 0.8);
+      channelTop.setData([
+        { time: times[highestIndex], value: highestHigh },
+        { time: times[times.length - 5], value: highestHigh + (slope * (times.length - 5 - highestIndex)) }
+      ]);
+      channelBot.setData([
+        { time: times[highestIndex], value: highestHigh - (highestHigh - lowestLow)*0.6 },
+        { time: times[times.length - 5], value: (highestHigh - (highestHigh - lowestLow)*0.6) + (slope * (times.length - 5 - highestIndex)) }
+      ]);
 
-    # Guardar no Histórico
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO sinais_oraculo (ativo, preco, atr, tendencia_15m, padrao_detetado, viés, guidance, stop_loss, take_profit, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (ativo, dados.preco_atual, dados.atr, dados.tendencia_15m, dados.padrao_grafico, vies, guidance, sl, tp, timestamp_atual))
-    conn.commit()
-    conn.close()
+      const structHeight = highestHigh - lowestLow;
+      const entryPrice = lowestLow + (structHeight * 0.35); 
+      const stopPrice = lowestLow - (structHeight * 0.05);  
+      const targetPrice = entryPrice + structHeight;        
 
-    return {
-        "status": "sucesso",
-        "ativo": ativo,
-        "vies": vies,
-        "stop_loss": round(sl, 2),
-        "take_profit": round(tp, 2),
-        "actionable_guidance": guidance
+      targetLine.setData([{ time: times[times.length - 10], value: targetPrice }, { time: times[times.length - 1], value: targetPrice }]);
+      entryLine.setData([{ time: times[times.length - 10], value: entryPrice }, { time: times[times.length - 1], value: entryPrice }]);
+      stopLine.setData([{ time: times[times.length - 10], value: stopPrice }, { time: times[times.length - 1], value: stopPrice }]);
+
+      const markers = [];
+      markers.push({ time: times[highestIndex], position: 'aboveBar', color: '#fff', shape: 'arrowDown', text: 'Forte resistência' });
+      markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#fff', shape: 'arrowUp', text: 'Múltiplos pavios' });
+      
+      if (currentPrice > entryPrice) {
+        markers.push({ time: times[times.length - 2], position: 'belowBar', color: '#00ff00', shape: 'arrowUp', text: 'Forte fuga' });
+        document.getElementById('lbl-status').innerHTML = '<span class="text-emerald-400 font-bold">ROMPIMENTO! Tendência de Alta.</span>';
+      } else {
+        document.getElementById('lbl-status').innerHTML = 'Testando liquidez. Aguardando fuga...';
+      }
+      candleSeries.setMarkers(markers);
+
+      document.getElementById('lbl-price').textContent = currentPrice.toFixed(2);
+      document.getElementById('lbl-target').textContent = targetPrice.toFixed(2);
+      document.getElementById('lbl-entry').textContent = entryPrice.toFixed(2);
+      document.getElementById('lbl-stop').textContent = stopPrice.toFixed(2);
     }
 
-@app.get("/api/historico")
-def obter_historico():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM sinais_oraculo ORDER BY id DESC LIMIT 15')
-    linhas = cursor.fetchall()
-    conn.close()
-    return [dict(linha) for linha in linhas]
+    async function loadHistoryAndStartLive() {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=150`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        klinesData = data.map(d => ({
+          time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+        }));
+        candleSeries.setData(klinesData);
+        analyzeAndDraw(klinesData);
+        connectWebSocket();
+      } catch (e) { console.error("Erro Binance API:", e); }
+    }
 
-# ==========================================
-# 4. FRONTEND VISUAL (DASHBOARD)
-# ==========================================
-@app.get("/", response_class=HTMLResponse)
-def dashboard_principal():
-    return """
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kronos Quant - Terminal do Oráculo</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-6">
-        <div class="max-w-6xl mx-auto space-y-6">
-            <header class="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-emerald-400">⚡ KRONOS QUANT</h1>
-                    <p class="text-sm text-slate-400">Oráculo Quantitativo de Price Action | WDO & BTC</p>
-                </div>
-                <div class="bg-emerald-950 border border-emerald-800 px-4 py-2 rounded-lg text-emerald-300 text-sm font-semibold animate-pulse">
-                    ● IA Online
-                </div>
-            </header>
+    function connectWebSocket() {
+      if (binanceWs) binanceWs.close();
+      binanceWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_${currentInterval}`);
+      binanceWs.onmessage = (event) => {
+        const kline = JSON.parse(event.data).k;
+        const candle = { time: kline.t / 1000, open: parseFloat(kline.o), high: parseFloat(kline.h), low: parseFloat(kline.l), close: parseFloat(kline.c) };
+        candleSeries.update(candle);
+        
+        if (klinesData.length > 0 && klinesData[klinesData.length - 1].time === candle.time) {
+          klinesData[klinesData.length - 1] = candle;
+        } else {
+          klinesData.push(candle);
+          if (klinesData.length > 200) klinesData.shift();
+        }
+        analyzeAndDraw(klinesData);
+      };
+    }
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4 md:col-span-1">
-                    <h2 class="text-xl font-bold text-slate-200">🤖 Solicitar Análise</h2>
-                    <div>
-                        <label class="block text-xs uppercase text-slate-400 mb-1">Ativo</label>
-                        <select id="ativo" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
-                            <option value="WDO">Dólar Futuro (WDO)</option>
-                            <option value="BTC">Bitcoin (BTC)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-slate-400 mb-1">Preço Atual</label>
-                        <input type="number" id="preco" step="any" value="5420.50" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-slate-400 mb-1">Volatilidade (ATR)</label>
-                        <input type="number" id="atr" step="any" value="12.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-slate-400 mb-1">Tendência 15m</label>
-                        <select id="tendencia" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
-                            <option value="alta">Alta (Bullish)</option>
-                            <option value="baixa">Baixa (Bearish)</option>
-                            <option value="lateral">Lateral / Consolidado</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-amber-400 font-bold mb-1">Padrão Gráfico (PDFs)</label>
-                        <select id="padrao_grafico" class="w-full bg-slate-950 border border-amber-700/50 rounded-lg p-2.5 text-amber-300">
-                            <option value="Nenhum">Nenhum / Não sei</option>
-                            <option value="Cup with Handle">Cup with Handle</option>
-                            <option value="Bump-and-Run Reversal">Bump-and-Run Reversal</option>
-                            <option value="Broadening Bottoms">Broadening Bottoms</option>
-                            <option value="Broadening Tops">Broadening Tops</option>
-                            <option value="Ascending Broadening Wedge">Ascending Broadening Wedge</option>
-                        </select>
-                    </div>
-                    <button onclick="enviarAnalise()" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-3 rounded-lg transition duration-200">
-                        Consultar Oráculo 🔮
-                    </button>
-                </div>
+    document.getElementById('symbol').addEventListener('change', (e) => { currentSymbol = e.target.value; loadHistoryAndStartLive(); });
+    document.getElementById('timeframe').addEventListener('change', (e) => { currentInterval = e.target.value; loadHistoryAndStartLive(); });
 
-                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4 md:col-span-2 flex flex-col justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-200 mb-3">📊 Veredito do Oráculo</h2>
-                        <div id="resultado" class="bg-slate-950 border border-slate-800 p-5 rounded-xl text-slate-300 min-h-[160px] flex items-center justify-center text-center text-sm">
-                            Aguardando leitura de mercado...
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-center">
-                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                            <span class="block text-xs text-slate-500">Viés Atual</span>
-                            <span id="res-vies" class="font-bold text-emerald-400">-</span>
-                        </div>
-                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                            <span class="block text-xs text-slate-500">Stop Loss</span>
-                            <span id="res-sl" class="font-bold text-rose-400">-</span>
-                        </div>
-                        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                            <span class="block text-xs text-slate-500">Alvo (Take Profit)</span>
-                            <span id="res-tp" class="font-bold text-cyan-400">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    setTimeout(() => {
+      chart.applyOptions({ width: document.getElementById('chart-container').clientWidth, height: document.getElementById('chart-container').clientHeight });
+    }, 500);
 
-            <!-- Histórico -->
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                <h2 class="text-xl font-bold text-slate-200">📜 Histórico de Sinais</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-950 text-slate-400 uppercase text-xs border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">Data</th>
-                                <th class="p-3">Ativo</th>
-                                <th class="p-3">Padrão</th>
-                                <th class="p-3">Viés</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-historico">
-                            <tr><td colspan="4" class="p-4 text-center text-slate-500">Carregando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    loadHistoryAndStartLive();
+  </script>
+</body>
+</html>
+"""
 
-        <script>
-            async function enviarAnalise() {
-                const dados = {
-                    ativo: document.getElementById('ativo').value,
-                    preco_atual: parseFloat(document.getElementById('preco').value),
-                    atr: parseFloat(document.getElementById('atr').value),
-                    tendencia_15m: document.getElementById('tendencia').value,
-                    padrao_grafico: document.getElementById('padrao_grafico').value
-                };
+# Escapa as aspas duplas do HTML para não quebrar o srcdoc
+html_escapado = html.escape(codigo_html)
 
-                const resDiv = document.getElementById('resultado');
-                resDiv.innerHTML = '<span class="text-yellow-400 animate-pulse">Consultando Conhecimento da Enciclopédia...</span>';
-
-                try {
-                    const response = await fetch('/api/analisar', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dados)
-                    });
-                    const json = await response.json();
-
-                    if (response.ok) {
-                        resDiv.innerHTML = `<p class="text-left font-medium text-slate-200 leading-relaxed">${json.actionable_guidance}</p>`;
-                        document.getElementById('res-vies').innerText = json.vies;
-                        document.getElementById('res-sl').innerText = json.stop_loss;
-                        document.getElementById('res-tp').innerText = json.take_profit;
-                        carregarHistorico();
-                    } else {
-                        resDiv.innerHTML = `<span class="text-rose-400">Erro: Verifique os valores inseridos.</span>`;
-                    }
-                } catch (err) {
-                    resDiv.innerHTML = `<span class="text-rose-400">Erro de ligação.</span>`;
-                }
-            }
-
-            async function carregarHistorico() {
-                try {
-                    const response = await fetch('/api/historico');
-                    const historico = await response.json();
-                    const tbody = document.getElementById('tabela-historico');
-                    
-                    if (historico.length === 0) return;
-
-                    tbody.innerHTML = historico.map(h => `
-                        <tr class="border-b border-slate-800 hover:bg-slate-950/50">
-                            <td class="p-3 text-xs text-slate-400">${h.timestamp}</td>
-                            <td class="p-3 font-bold text-emerald-400">${h.ativo}</td>
-                            <td class="p-3 text-amber-300 text-xs">${h.padrao_detetado}</td>
-                            <td class="p-3 text-xs text-slate-200">${h.viés}</td>
-                        </tr>
-                    `).join('');
-                } catch (e) { console.error("Erro histórico", e); }
-            }
-            carregarHistorico();
-        </script>
-    </body>
-    </html>
-    """
+# Exibe o iframe com tamanho garantido
+display(HTML(f'<iframe srcdoc="{html_escapado}" width="100%" height="720px" style="border:none; border-radius: 8px; overflow: hidden;"></iframe>'))
