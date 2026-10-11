@@ -104,147 +104,114 @@
     let currentInterval = '5m';
 
     // 3. Motor Lógico: Analisar e Desenhar em Tempo Real
+    // --- SÉRIES ADICIONAIS PARA O SEU GRÁFICO ---
+    // (Adicione estas linhas logo abaixo de onde declarou a targetLine e stopLine)
+    const ema5Line = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1, title: 'MME5' }); // Laranja
+    const ema20Line = chart.addLineSeries({ color: '#ec4899', lineWidth: 1, title: 'MME20' }); // Rosa
+
+    // --- FUNÇÃO DE COORDENADAS E INTELIGÊNCIA ARTIFICIAL ---
     function analyzeAndDraw(data) {
       if (data.length < 60) return;
-      
       const recent = data.slice(-60);
       const times = recent.map(d => d.time);
       const highs = recent.map(d => d.high);
       const lows = recent.map(d => d.low);
       const closes = recent.map(d => d.close);
+      const opens = recent.map(d => d.open);
       
       const lastCandle = recent[recent.length - 1];
+      const prevCandle = recent[recent.length - 2];
       const currentPrice = lastCandle.close;
 
-      // Encontrar Máxima e Mínima do período para Resistência e Suporte
+      // 1. CÁLCULO DE MÉDIAS MÓVEIS (MME5 e MME20 das imagens)
+      const calculateEMA = (period) => {
+        const k = 2 / (period + 1);
+        let emaArray = [];
+        let ema = closes[0];
+        for (let i = 0; i < closes.length; i++) {
+          ema = (closes[i] * k) + (ema * (1 - k));
+          emaArray.push({ time: times[i], value: ema });
+        }
+        return emaArray;
+      };
+      ema5Line.setData(calculateEMA(5));
+      ema20Line.setData(calculateEMA(20));
+
+      // 2. MAPEAMENTO DE ESTRUTURA (Suportes e Resistências)
       const highestHigh = Math.max(...highs);
       const lowestLow = Math.min(...lows);
       const highestIndex = highs.indexOf(highestHigh);
       const lowestIndex = lows.indexOf(lowestLow);
 
-      // A) Desenhar Retângulos Azuis (Resistência e Suporte) simulados por linhas grossas
+      // Coordenadas das Caixas Azuis (Resistência e Suporte)
       resistanceLine.setData([
         { time: times[Math.max(0, highestIndex - 5)], value: highestHigh },
         { time: times[Math.min(times.length - 1, highestIndex + 15)], value: highestHigh }
       ]);
-      
       supportLine.setData([
         { time: times[Math.max(0, lowestIndex - 10)], value: lowestLow },
         { time: times[times.length - 1], value: lowestLow }
       ]);
 
-      // B) Desenhar Canal de Baixa (Regressão ou inclinação simples)
-      const slope = (lowestLow - highestHigh) / (times.length * 0.8);
-      const midTime = Math.floor(times.length / 2);
-      
-      channelTop.setData([
-        { time: times[highestIndex], value: highestHigh },
-        { time: times[times.length - 5], value: highestHigh + (slope * (times.length - 5 - highestIndex)) }
-      ]);
-      
-      channelBot.setData([
-        { time: times[highestIndex], value: highestHigh - (highestHigh - lowestLow)*0.6 },
-        { time: times[times.length - 5], value: (highestHigh - (highestHigh - lowestLow)*0.6) + (slope * (times.length - 5 - highestIndex)) }
-      ]);
-
-      // C) Calcular Regras de Medição Bulkowski
-      // A entrada é no rompimento da resistência local/suporte. O Stop é abaixo dos "múltiplos pavios". O alvo é a projeção da altura.
+      // 3. COORDENADAS DE OPERAÇÃO (A Matemática da Fuga)
+      // Baseado na altura do canal de baixa
       const structHeight = highestHigh - lowestLow;
-      const entryPrice = lowestLow + (structHeight * 0.35); // Simulando a linha amarela "Compras"
-      const stopPrice = lowestLow - (structHeight * 0.05);  // Simulando a linha vermelha "Stop"
-      const targetPrice = entryPrice + structHeight;        // Simulando a linha verde "Alvo"
+      
+      // Coordenada de Compra (Amarela): 25% acima do fundo, rompendo a micro-resistência
+      const entryPrice = lowestLow + (structHeight * 0.25); 
+      // Coordenada de Stop (Vermelha): Abaixo dos múltiplos pavios do fundo
+      const stopPrice = lowestLow - (structHeight * 0.05);  
+      // Coordenada de Alvo (Verde): Projeção de 2 vezes o risco (Risk/Reward 1:2)
+      const targetPrice = entryPrice + ((entryPrice - stopPrice) * 2);        
 
-      targetLine.setData([{ time: times[times.length - 10], value: targetPrice }, { time: times[times.length - 1], value: targetPrice }]);
-      entryLine.setData([{ time: times[times.length - 10], value: entryPrice }, { time: times[times.length - 1], value: entryPrice }]);
-      stopLine.setData([{ time: times[times.length - 10], value: stopPrice }, { time: times[times.length - 1], value: stopPrice }]);
+      targetLine.setData([{ time: times[times.length - 15], value: targetPrice }, { time: times[times.length - 1], value: targetPrice }]);
+      entryLine.setData([{ time: times[times.length - 15], value: entryPrice }, { time: times[times.length - 1], value: entryPrice }]);
+      stopLine.setData([{ time: times[times.length - 15], value: stopPrice }, { time: times[times.length - 1], value: stopPrice }]);
 
-      // D) Inserir Marcadores de Texto exatos da Imagem
+      // 4. DETEÇÃO DE PADRÕES (Inteligência Visual)
       const markers = [];
+      let statusText = "Aguardando setup de reversão...";
+      let statusColor = "text-slate-300";
+
+      // Marca a "Forte resistência"
+      markers.push({ time: times[highestIndex], position: 'aboveBar', color: '#0ea5e9', shape: 'arrowDown', text: 'Forte resistência' });
       
-      // "Forte resistência" no topo
-      markers.push({ time: times[highestIndex], position: 'aboveBar', color: '#fff', shape: 'arrowDown', text: 'Forte resistência' });
-      // "Múltiplos pavios" no fundo
-      markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#fff', shape: 'arrowUp', text: 'Múltiplos pavios distorcendo\no topo anterior, alta pressão.' });
-      
-      // Detetar "Forte fuga" se o preço cruzou a linha de entrada amarela recentemente
-      if (currentPrice > entryPrice) {
-        markers.push({ time: times[times.length - 2], position: 'belowBar', color: '#00ff00', shape: 'arrowUp', text: 'Forte fuga e topo mais alto,\ntentativa de reversão.' });
-        document.getElementById('lbl-status').innerHTML = '<span class="text-emerald-400 font-bold">ROMPIMENTO DETETADO! Tendência de Alta confirmada.</span>';
-      } else {
-        document.getElementById('lbl-status').innerHTML = 'A testar liquidez na zona de suporte. Aguardando fuga...';
+      // Avalia "Múltiplos pavios" (Pressão compradora no fundo)
+      const wickSize = Math.abs(recent[lowestIndex].low - Math.min(recent[lowestIndex].open, recent[lowestIndex].close));
+      const bodySize = Math.abs(recent[lowestIndex].open - recent[lowestIndex].close);
+      if (wickSize > bodySize * 1.5) {
+        markers.push({ time: times[lowestIndex], position: 'belowBar', color: '#fff', shape: 'arrowUp', text: 'Múltiplos pavios distorcendo' });
+      }
+
+      // Avalia "Inside Bar" e "Spinning Top"
+      const isInsideBar = lastCandle.high < prevCandle.high && lastCandle.low > prevCandle.low;
+      const isSpinningTop = Math.abs(lastCandle.open - lastCandle.close) < (lastCandle.high - lastCandle.low) * 0.3; // Corpo pequeno
+
+      if (isInsideBar) {
+        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#facc15', shape: 'circle', text: 'Inside Bar (Dúvida)' });
+      } else if (isSpinningTop) {
+        markers.push({ time: lastCandle.time, position: 'aboveBar', color: '#a855f7', shape: 'circle', text: 'Spinning Top (Peão)' });
+      }
+
+      // Detetar "Forte fuga" e Cruzamento de Médias
+      const currentEma5 = ema5Line.data().slice(-1)[0].value;
+      const currentEma20 = ema20Line.data().slice(-1)[0].value;
+      const isEmaBullish = currentEma5 > currentEma20;
+
+      if (currentPrice > entryPrice && isEmaBullish) {
+        markers.push({ time: lastCandle.time, position: 'belowBar', color: '#10b981', shape: 'arrowUp', text: 'Forte fuga + MME5 cruzou MME20' });
+        statusText = "ROMPIMENTO CONFIRMADO! Modo Compra Ativado.";
+        statusColor = "text-emerald-400 font-bold";
       }
 
       candleSeries.setMarkers(markers);
 
-      // Atualizar Textos do Oráculo no HTML
+      // Atualiza o Painel do Oráculo com as Coordenadas Exatas
       document.getElementById('lbl-price').textContent = currentPrice.toFixed(2);
       document.getElementById('lbl-target').textContent = targetPrice.toFixed(2);
       document.getElementById('lbl-entry').textContent = entryPrice.toFixed(2);
       document.getElementById('lbl-stop').textContent = stopPrice.toFixed(2);
+      
+      const statusElement = document.getElementById('lbl-status');
+      statusElement.innerHTML = `<span class="${statusColor}">${statusText}</span>`;
     }
-
-    // 4. Integração Binance (REST para histórico, WSS para Live)
-    async function loadHistoryAndStartLive() {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=150`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        klinesData = data.map(d => ({
-          time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
-        }));
-        candleSeries.setData(klinesData);
-        analyzeAndDraw(klinesData);
-        connectWebSocket();
-      } catch (e) {
-        console.error("Erro Binance API:", e);
-      }
-    }
-
-    function connectWebSocket() {
-      if (binanceWs) binanceWs.close();
-      const wsUrl = `wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_${currentInterval}`;
-      binanceWs = new WebSocket(wsUrl);
-
-      binanceWs.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        const kline = msg.k;
-        const candle = {
-          time: kline.t / 1000, open: parseFloat(kline.o), high: parseFloat(kline.h), low: parseFloat(kline.l), close: parseFloat(kline.c)
-        };
-        
-        candleSeries.update(candle);
-        
-        // Atualiza o último candle no nosso array de histórico
-        if (klinesData.length > 0 && klinesData[klinesData.length - 1].time === candle.time) {
-          klinesData[klinesData.length - 1] = candle;
-        } else {
-          klinesData.push(candle);
-          if (klinesData.length > 200) klinesData.shift();
-        }
-
-        // Recalcular toda a geometria a cada "tick" de preço (Oráculo em Tempo Real)
-        analyzeAndDraw(klinesData);
-      };
-
-      binanceWs.onclose = () => {
-        document.getElementById('ws-status').textContent = 'RECONECTANDO...';
-        document.getElementById('ws-status').className = 'text-yellow-400 font-bold';
-        setTimeout(connectWebSocket, 3000);
-      };
-    }
-
-    // Eventos de alteração de Par e Timeframe
-    document.getElementById('symbol').addEventListener('change', (e) => { currentSymbol = e.target.value; loadHistoryAndStartLive(); });
-    document.getElementById('timeframe').addEventListener('change', (e) => { currentInterval = e.target.value; loadHistoryAndStartLive(); });
-
-    // Ajuste de ecrã dinâmico
-    window.addEventListener('resize', () => {
-      chart.applyOptions({ width: document.getElementById('chart-container').clientWidth, height: document.getElementById('chart-container').clientHeight });
-    });
-
-    // Iniciar
-    loadHistoryAndStartLive();
-
-  </script>
-</body>
-</html>
