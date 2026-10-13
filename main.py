@@ -5,12 +5,13 @@ import ccxt.async_support as ccxt_async
 import pandas as pd
 import numpy as np
 import traceback
+import os
 
 # ==============================================================================
-# KRONOS QUANT CORE API // MOTOR BAYESIANO E L2
+# KRONOS QUANT CORE API // V5.0 (INTEGRAÇÃO DE CONHECIMENTO EXTERNO)
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="4.2.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="5.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,8 +28,9 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.2.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE - LENDO DADOS EXTERNOS", "version": "5.0.0"}
 
+# --- MATEMÁTICA BASE DO KRONOS ---
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
@@ -60,10 +62,9 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
 
 @app.post("/api/oracle")
 async def process_quant_analysis(req: QuantRequest):
-    # A SOLUÇÃO: Usar a filial americana da Binance para IPs dos Estados Unidos (Render)
     exchange = ccxt_async.binanceus({'enableRateLimit': True}) 
     try:
-        bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=100)
+        bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=200) # Mais limite para padrões
         await exchange.close()
         
         df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -90,34 +91,87 @@ async def process_quant_analysis(req: QuantRequest):
         confluence_score = 0
         signals = []
         
+        # 1. ANÁLISE TÉCNICA BASE (KRONOS)
         if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']:
-            confluence_score += 25
+            confluence_score += 15
             signals.append("MME5 > MME20")
             
         if current_vol > (vol_sma * 1.5):
-            confluence_score += 20
-            signals.append("Volume Alto")
+            confluence_score += 15
+            signals.append("Volume Institucional")
             
         if 55 <= current_rsi <= 75:
-            confluence_score += 15
+            confluence_score += 10
             signals.append("RSI Saudável")
         elif current_rsi > 75:
-            confluence_score -= 10
+            confluence_score -= 15
             signals.append("RSI Exausto")
             
         if current_price > breakout_threshold:
-            confluence_score += 40
-            signals.append("Fuga Estrutural")
+            confluence_score += 20
+            signals.append("Fuga Estrutural Confirmada")
 
+        # 2. INTEGRAÇÃO DA BASE DE CONHECIMENTO (ARQUIVOS DO USUÁRIO)
+        knowledge_applied = False
+        
+        # Tentar usar as fórmulas de chart_patterns_math.py e estatísticas do CSV
+        try:
+            # Tentar importar o seu ficheiro matematico
+            if os.path.exists("chart_patterns_math.py"):
+                import chart_patterns_math as cpm
+                
+                # Extrair arrays numpy puros para as funções do seu ficheiro
+                H = df['high'].values
+                L = df['low'].values
+                C = df['close'].values
+                
+                # 1. Procurar Topo em Tubo (Pipe Top) - Um dos seus padrões
+                pipes = cpm.pipe_top(df['open'].values, H, L, C, lookback=20)
+                if pipes:
+                    confluence_score -= 20 # Tubo no topo indica queda
+                    signals.append("Padrão de Queda: Tubo Topo (Pipe Top)")
+                    knowledge_applied = True
+                
+                # 2. Procurar Duplo Fundo (Double Bottom) - Padrão de alta forte[cite: 13, 14]
+                dbottoms = cpm.double_bottoms(H, L, C)
+                if dbottoms:
+                    confluence_score += 25
+                    signals.append(f"Fundo Duplo Encontrado ({dbottoms[-1]['kind']})")
+                    knowledge_applied = True
+                    
+                    # 3. Ligar os Padrões ao seu CSV de Estatísticas[cite: 13, 14]
+                    if os.path.exists("pattern_stats.csv"):
+                        try:
+                            df_stats = pd.read_csv("pattern_stats.csv")
+                            # Procurar as estatísticas para Duplo Fundo (Eve & Eve etc)[cite: 13, 14]
+                            # Simplificando a busca para qualquer fundo duplo[cite: 13, 14]
+                            stats_match = df_stats[df_stats['pattern'].str.contains('Double Bottom', case=False, na=False)]
+                            if not stats_match.empty:
+                                # Usar o mercado "Bull" e rompimento "up" como referência
+                                bull_stats = stats_match[(stats_match['market'] == 'Bull') & (stats_match['breakout'] == 'up')]
+                                if not bull_stats.empty:
+                                    win_chance = 100 - float(bull_stats.iloc[0]['break_even_failure_pct']) # Winrate aproximado
+                                    signals.append(f"Estatística CSV: ~{win_chance:.0f}% Acerto")
+                                    if win_chance > 80: confluence_score += 10
+                        except Exception as csv_e:
+                            print(f"Erro lendo CSV: {csv_e}")
+                            
+        except Exception as e:
+            print(f"Erro ao aplicar módulos de conhecimento externo: {e}")
+            
+        # 3. FILTRO FINAL DE RUÍDO
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
         is_stable = l2_div < 0.015 
         
         if not is_stable:
             confluence_score *= 0.5 
-            signals.append("Risco Whipsaw (Ruído L2)")
+            signals.append("Risco Whipsaw (L2)")
+
+        # Limitar o score a 100% e mínimo de 0%
+        confluence_score = max(0.0, min(round(confluence_score, 2), 100.0))
 
         if confluence_score >= 80:
-            verdict = "COMPRA FORTE"
+            verdict = "COMPRA INSTITUCIONAL"
         elif confluence_score >= 60:
             verdict = "COMPRA MODERADA"
         else:
@@ -130,14 +184,15 @@ async def process_quant_analysis(req: QuantRequest):
                 "rsi_14": round(current_rsi, 2),
                 "atr_14": round(current_atr, 4),
                 "l2_divergence": round(l2_div, 6),
-                "market_state": "ESTÁVEL" if is_stable else "CAÓTICO"
+                "market_state": "ESTÁVEL" if is_stable else "CAÓTICO",
+                "knowledge_applied": knowledge_applied
             },
             "tactical_coordinates": {
                 "atr_stop_loss": round(dynamic_stop, 4),
                 "atr_take_profit": round(dynamic_target, 4)
             },
             "bayesian_oracle": {
-                "confluence_score_pct": round(confluence_score, 2),
+                "confluence_score_pct": confluence_score,
                 "active_signals": signals,
                 "final_verdict": verdict
             }
