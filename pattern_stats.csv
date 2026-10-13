@@ -175,3 +175,8 @@ Event,Bear,Stock Downgrades,down,-19,17,35,45,
 Event,Bear,Stock Downgrades,up,14,28,-34,50,
 Event,Bear,Stock Upgrades,down,-18,23,35,17,
 Event,Bear,Stock Upgrades,up,16,21,-32,59,
+Chart,Bull,Bump-and-Run Reversal Bottom,up,38.0,2.0,-29.0,59.0,Poderoso padrão LTA
+Chart,Bear,Bump-and-Run Reversal Top,down,-27.0,1.0,48.0,65.0,Letal para LTB com 1% falha
+Chart,Bear,Descending Broadening Wedge,down,-25.0,2.0,49.0,66.0,Venda confirmada
+Chart,Bear,Broadening Formations Right-Angled and Descending,down,-22.0,8.0,47.0,52.0,Venda com teto plano
+Chart,Bull,Cup with Handle,up,34.0,5.0,-30.0,58.0,Explosivo se handle curto
