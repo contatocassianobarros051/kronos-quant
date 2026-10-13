@@ -1,0 +1,2412 @@
+{
+  "curso": "Price Action & Padrões de Candles",
+  "fonte": "Análise visual de frames de vídeo (sem transcrição de áudio)",
+  "indice_rapido": {
+    "parte_1": "modulos 1-12 (curso original)",
+    "parte_2": "modulos 13-20 (pesquisa geral)",
+    "parte_3": "modulos 21-28 (curso Aldeia)",
+    "parte_4": "modulos 29-36 (livros e foruns)",
+    "parte_5": "modulos 37-41 (aprofundamento: Wyckoff, VSA, ICT, prop trading, multi-timeframe)",
+    "parte_6": "modulos 42-48 (gerenciamento de risco em conta: Kelly, Risco de Ruina, drawdown, R-multiples, limites diarios, margem/alavancagem, margem B3 oficial)",
+    "parte_7": "modulos 49-53 (academia e regulacao: evidencia academica mista sobre candles, regra PDT dos EUA extinta em 2026, limites ESMA Europa, disclosure oficial FINRA, origem documentada Wyckoff)",
+    "parte_8": "modulos 54-57 (foruns adicionais TradingView, framework de como noticia move candle, buy the rumor sell the news, leitura pratica pos-noticia de alto impacto)",
+    "parte_9": "modulos 58-60 (ferramentas intradiarias: VWAP, ATR para stop/alvo por volatilidade, Opening Range Breakout)",
+    "parte_10": "modulos 61-63 (+30 padroes: candle adicionais, harmonicos com Fibonacci, graficos adicionais)",
+    "parte_11": "modulo 64 (backtest real: pipeline de deteccao de padrao OHLC + bootstrap estatistico, template reutilizavel)",
+    "parte_12": "modulo 65 (8 livros/recursos gratuitos legitimos: classicos de dominio publico Lefevre/Wyckoff/Nelson + CFTC/FINRA/BabyPips/Investopedia)",
+    "parte_13": "modulos 66-67 (imagens Strike+Al Brooks: 8 padroes de candle novos, terminologia avancada Brooks - Always-In, BO Test, Final Flag, Magnet, MTR, Signal Bar)",
+    "parte_14": "modulos 69-73 (setups H1/H2/L1/L2 verificados no glossario oficial Brooks, Measured Move, Micro Channel, HH MTR->LH MTR, pedagogia iniciante x experiente, terminologia Nison confirmada, pesquisa academica CNN+RL verificada)"
+  },
+  "protocolo_analise": [
+    "1. Tendencia maior: HH/HL ou LH/LL (Mod 5, 17); perguntar timeframe e contexto maior (Mod 41)",
+    "2. Suporte/Resistencia relevantes: nivel proximo ao preco, forca por numero de toques (Mod 6.4), zonas de liquidez (Mod 34)",
+    "3. Padrao de candle no ponto de decisao: identificar padrao (Mod 3/13/31) e citar taxa de acerto real (Mod 30)",
+    "4. Confluencia: quantos fatores coincidem (S/R + LT + Fibo/Pivot + numero redondo + candle) - Mod 32",
+    "5. Volume se visivel: confirma ou contradiz o candle (Mod 34/38)",
+    "6. Filtro de armadilha: rompimento real ou bull/bear trap (Mod 33)",
+    "7. Entrada/Stop/Alvo: gatilho no rompimento do padrao, stop na invalidacao tecnica, alvo na proxima S/R (Mod 10, 26)",
+    "8. Relacao risco:retorno (payoff) antes de validar o setup (Mod 11/23); dimensionar com Kelly fracionario (Mod 42), garantir Risco de Ruina desprezivel (Mod 43) e respeitar limite de perda diaria (Mod 46)",
+    "9. Contexto de horario/macro: sessao de liquidez, noticia macro proxima (Mod 19, 24, 28, 39)"
+  ],
+  "arquivos": [
+    {
+      "id": "curso1",
+      "arquivo": "Curso.mkv",
+      "duracao_min": 41
+    },
+    {
+      "id": "curso2",
+      "arquivo": "Curso__2_.mkv",
+      "duracao_min": 64
+    },
+    {
+      "id": "curso3",
+      "arquivo": "Curso__3_.mkv",
+      "duracao_min": 16
+    },
+    {
+      "id": "curso4",
+      "arquivo": "Curso__4_.mkv",
+      "duracao_min": 21
+    },
+    {
+      "id": "curso5",
+      "arquivo": "Curso__5_.mkv",
+      "duracao_min": 17
+    },
+    {
+      "id": "editar",
+      "arquivo": "Editar_ordem.mkv",
+      "duracao_min": 16
+    },
+    {
+      "id": "curso6",
+      "arquivo": "Curso__6_.mkv",
+      "duracao_min": 28
+    },
+    {
+      "id": "curso7",
+      "arquivo": "Curso__7_.mkv",
+      "duracao_min": 51
+    },
+    {
+      "id": "curso8",
+      "arquivo": "Curso__8_.mkv",
+      "duracao_min": 44
+    },
+    {
+      "id": "curso9",
+      "arquivo": "Curso__9_.mkv",
+      "duracao_min": 49
+    },
+    {
+      "id": "curso10",
+      "arquivo": "Curso__10_.mkv",
+      "duracao_min": 30
+    },
+    {
+      "id": "curso11",
+      "arquivo": "Curso__11_.mkv",
+      "duracao_min": 40
+    },
+    {
+      "id": "curso12",
+      "arquivo": "Curso__12_.mkv",
+      "duracao_min": 27
+    },
+    {
+      "id": "curso13",
+      "arquivo": "Curso__13_.mkv",
+      "duracao_min": 17
+    }
+  ],
+  "observacao_duplicatas": "Curso.mkv e Editar_ordem.mkv vieram duplicados na 2a leva de uploads (mesmo tamanho de arquivo) e nao foram reprocessados.",
+  "modulos": [
+    {
+      "modulo": "1-2",
+      "titulo": "Geradores de Movimento / Força Dominante",
+      "fonte": "curso1",
+      "conceitos": [
+        {
+          "nome": "Força (continuidade)",
+          "descricao": "Candles na direção do movimento, indicando que o movimento tende a continuar."
+        },
+        {
+          "nome": "Força (rejeição)",
+          "descricao": "Candles que indicam rejeição de preço, sinalizando possível reversão."
+        }
+      ]
+    },
+    {
+      "modulo": "3",
+      "titulo": "Padrões de Candles",
+      "fonte": [
+        "curso1",
+        "curso2",
+        "curso3",
+        "curso5"
+      ],
+      "padroes": [
+        {
+          "nome": "Martelo",
+          "ingles": "Hammer",
+          "n_candles": 1,
+          "cor": "verde",
+          "formacao": "Candle grande, corpo e sombra superior pequenos, longa sombra inferior",
+          "sinal": "reversao_alta",
+          "contexto": "apos movimento de queda"
+        },
+        {
+          "nome": "Estrela Cadente",
+          "ingles": "Shooting Star",
+          "n_candles": 1,
+          "cor": "vermelho",
+          "formacao": "Candle grande, corpo e sombra inferior pequenos, longa sombra superior. Dividido em 4 quartis: 1-3 sombra superior, 4 corpo+sombra inferior",
+          "sinal": "reversao_baixa",
+          "contexto": "apos movimento de alta"
+        },
+        {
+          "nome": "Doji Libélula",
+          "ingles": "Dragonfly Doji",
+          "n_candles": 1,
+          "cor": "neutro",
+          "formacao": "Sem corpo ou corpo mínimo, longa sombra inferior. 5 quintis: 1 corpo+sombra superior, 2-5 sombra inferior. Somente em ativos líquidos",
+          "sinal": "reversao_alta",
+          "contexto": "apos movimento de baixa"
+        },
+        {
+          "nome": "Marubozu de Alta",
+          "n_candles": 1,
+          "cor": "verde",
+          "formacao": "Candle grande formado somente por corpo verde; aceita pouca sombra inferior e/ou superior",
+          "sinal": "continuidade_ou_forca_alta"
+        },
+        {
+          "nome": "Marubozu de Baixa",
+          "n_candles": 1,
+          "cor": "vermelho",
+          "formacao": "Candle grande formado somente por corpo vermelho; aceita pouca sombra inferior e/ou superior",
+          "sinal": "continuidade_ou_forca_baixa"
+        },
+        {
+          "nome": "Dúvida",
+          "ingles": "Doubt candle",
+          "n_candles": 1,
+          "cor": "verde ou vermelho",
+          "formacao": "Corpo e sombras pequenas; candle pequeno",
+          "sinal": "indecisao"
+        },
+        {
+          "nome": "Spinning Top",
+          "n_candles": 1,
+          "cor": "verde ou vermelho",
+          "formacao": "Corpo pequeno, sombras superior e inferior grandes; amplitude média a grande",
+          "sinal": "indecisao"
+        },
+        {
+          "nome": "Enforcado",
+          "ingles": "Hanging Man",
+          "n_candles": 1,
+          "cor": "vermelho",
+          "formacao": "Candle grande, corpo e sombra superior pequenos, longa sombra inferior. 4 quartis: 1 corpo+sombra superior, 2-4 sombra inferior",
+          "sinal": "reversao_baixa",
+          "contexto": "topo de tendência de alta"
+        },
+        {
+          "nome": "Martelo Invertido",
+          "ingles": "Inverted Hammer",
+          "n_candles": 1,
+          "cor": "verde",
+          "formacao": "Candle grande, corpo e sombra inferior pequenos, longa sombra superior. 4 quartis: 1-3 sombra superior, 4 corpo+sombra inferior",
+          "sinal": "reversao_alta",
+          "contexto": "fundo de tendência de baixa"
+        },
+        {
+          "nome": "Harami de Alta",
+          "n_candles": 2,
+          "formacao": "1º vermelho e grande, 2º verde e pequeno contido no corpo do 1º (sombras irrelevantes)",
+          "sinal": "reversao_alta",
+          "contexto": "apos movimento de baixa"
+        },
+        {
+          "nome": "Harami de Baixa",
+          "n_candles": 2,
+          "formacao": "1º verde e grande, 2º vermelho e pequeno contido no corpo do 1º (sombras irrelevantes)",
+          "sinal": "reversao_baixa",
+          "contexto": "apos movimento de alta"
+        },
+        {
+          "nome": "Padrão Penetrante",
+          "ingles": "Piercing Pattern",
+          "n_candles": 2,
+          "formacao": "1º vermelho, 2º verde e grande. Abertura do 2º abaixo da mínima do 1º; fechamento do 2º entre a metade do corpo e a abertura do 1º",
+          "estatistica": "reversão em 64% dos casos (Thomas Bulkowski)",
+          "sinal": "reversao_alta",
+          "contexto": "apos movimento de baixa"
+        },
+        {
+          "nome": "Nuvem Negra",
+          "ingles": "Dark Cloud Cover",
+          "n_candles": 2,
+          "formacao": "1º verde, 2º vermelho e grande. Abertura do 2º acima da máxima do 1º; fechamento do 2º entre a metade do corpo e a abertura do 1º",
+          "estatistica": "reversão em ~60% dos casos",
+          "sinal": "reversao_baixa",
+          "contexto": "apos movimento de alta"
+        },
+        {
+          "nome": "Engolfo de Alta",
+          "ingles": "Bullish Engulfing",
+          "n_candles": 2,
+          "formacao": "1º vermelho, 2º verde e grande, engolfa o corpo do 1º",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Engolfo de Baixa",
+          "ingles": "Bearish Engulfing",
+          "n_candles": 2,
+          "formacao": "1º verde, 2º vermelho e grande, engolfa o corpo do 1º (sombras irrelevantes)",
+          "estatistica": "reversão em 79% dos casos (Thomas Bulkowski)",
+          "sinal": "reversao_baixa"
+        }
+      ]
+    },
+    {
+      "modulo": "4",
+      "titulo": "Tipos de Movimento",
+      "fonte": "curso4",
+      "conceitos": [
+        {
+          "nome": "4.1 Impulso e Correção",
+          "descricao": "Impulso = movimento a favor da tendência principal; Correção = movimento contrário e temporário"
+        },
+        {
+          "nome": "4.2 Correção",
+          "descricao": "Regras para correção válida; correção ruim em tendência de alta = avança até o fundo prévio"
+        },
+        {
+          "nome": "4.3 Contra a Tendência",
+          "descricao": "Movimento contrário à tendência vigente: preços caindo em alta ou subindo em baixa"
+        },
+        {
+          "nome": "4.4 Retomada de Tendência",
+          "descricao": "Identificação do fim do movimento corretivo e volta à tendência original"
+        }
+      ]
+    },
+    {
+      "modulo": "Linhas de Tendência",
+      "titulo": "Linhas de Tendência (LTA/LTB)",
+      "fonte": "editar",
+      "conceitos": [
+        {
+          "nome": "Identificar e Traçar LTs",
+          "descricao": "LTA liga fundos ascendentes; LTB liga topos descendentes. LTA muito inclinada é mais fácil de romper mas não indica necessariamente fim da tendência. 3º toque torna a linha mais confiável."
+        },
+        {
+          "nome": "Rompimento e Pullback",
+          "descricao": "Rompimento = fechamento além da linha; Pullback = retorno à linha antes de seguir na nova direção"
+        }
+      ]
+    },
+    {
+      "modulo": "5",
+      "titulo": "Tendências",
+      "fonte": "curso6",
+      "conceitos": [
+        {
+          "nome": "5.1 Início da Tendência",
+          "descricao": "Tendência definida por candles em oscilação de força, direção e amplitude"
+        },
+        {
+          "nome": "5.2 Amplitude da Tendência",
+          "descricao": "Tendência forte vs. secundária vs. indefinida (lateralização)"
+        },
+        {
+          "nome": "5.3 Continuidade/Fim da Tendência (pivôs)",
+          "descricao": "Uso de pivôs: P1 = ponto extremo do pivô; P2 = valor do pivô; T1 = cabeça do pivô"
+        },
+        {
+          "nome": "5.4 Tendência Indefinida",
+          "descricao": "Identificação de mercado lateralizado, sem direção clara"
+        }
+      ]
+    },
+    {
+      "modulo": "6",
+      "titulo": "Suportes e Resistências",
+      "fonte": "curso7",
+      "conceitos": [
+        {
+          "nome": "6.1 Definição",
+          "descricao": "Região de preço onde compradores estão mais fortes que vendedores (suporte) ou vice-versa (resistência)"
+        },
+        {
+          "nome": "6.2 Tipos de Suporte/Resistência",
+          "descricao": "Fundos/topos anteriores, indicadores (médias móveis), linhas de tendência (LTA/LTB), máxima/mínima de candle anterior, números redondos"
+        },
+        {
+          "nome": "6.3 Como Identificar Fundo/Topo",
+          "descricao": "Fundo: candle de mínima mais baixa + superação da máxima que mantiver essa mínima. Topo: candle de máxima mais alta + perda da mínima que mantiver essa máxima"
+        },
+        {
+          "nome": "6.4 Força do Suporte/Resistência",
+          "descricao": "Quanto mais toques uma região tiver, mais importante e respeitada ela é (1 toque < 2 toques < 3 toques)"
+        },
+        {
+          "nome": "6.5-6.6 Médias Móveis como S/R",
+          "descricao": "Médias móveis inclinadas atuam como suporte/resistência dinâmica"
+        },
+        {
+          "nome": "6.7 Número Redondo",
+          "descricao": "Preços redondos (ex: terminados em 00) atuam como suporte/resistência psicológico"
+        },
+        {
+          "nome": "6.8 Romper x Violar",
+          "descricao": "Romper = rompimento válido com fechamento além do nível. Violar = furo momentâneo sem fechamento além do nível"
+        },
+        {
+          "nome": "6.9 Validade no Tempo",
+          "descricao": "Estruturas de suporte/resistência perdem relevância com o tempo"
+        },
+        {
+          "nome": "6.10 Bidirecionalidade / Princípio da Bipolaridade",
+          "descricao": "Suporte rompido tende a virar resistência e vice-versa"
+        }
+      ]
+    },
+    {
+      "modulo": "8",
+      "titulo": "Padrões Gráficos",
+      "fonte": [
+        "curso8",
+        "curso9"
+      ],
+      "padroes": [
+        {
+          "nome": "Retângulo",
+          "formacao": "Pode iniciar com fundo ou topo; opera-se de 4 formas: venda de resistência, compra de suporte, venda de rompimento baixista, compra de rompimento altista"
+        },
+        {
+          "nome": "Fundo Duplo",
+          "formacao": "Confirma no rompimento do topo intermediário (B)",
+          "alvo": "Distância fundo-topo intermediário projetada a partir do rompimento (ex.: A=10,00, B=10,50, C=10,00 -> alvo D=11,03)",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Topo Duplo",
+          "formacao": "Espelho do Fundo Duplo",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Triângulo Ascendente",
+          "formacao": "2 fundos mais altos + 2 topos no mesmo nível",
+          "sinal": "alta",
+          "obs": "Rompimento pela LTA é mais confiável que rompimento no 1/3 final (sinalizado como menos confiável)"
+        },
+        {
+          "nome": "Triângulo Descendente",
+          "formacao": "Não detalhado nos frames capturados (citado no menu)"
+        },
+        {
+          "nome": "Triângulo Simétrico",
+          "formacao": "Não detalhado nos frames capturados (citado no menu)"
+        },
+        {
+          "nome": "Canal de Alta",
+          "formacao": "2 fundos mais altos + 2 topos mais altos (linhas paralelas)",
+          "sinal": "continuidade_alta"
+        },
+        {
+          "nome": "Canal de Baixa",
+          "formacao": "Espelho do Canal de Alta",
+          "sinal": "continuidade_baixa"
+        },
+        {
+          "nome": "OCO / OCOI",
+          "formacao": "Ombro Cabeça Ombro (topo) e Ombro Cabeça Ombro Invertido (fundo, formato em W)",
+          "sinal": "reversao"
+        },
+        {
+          "nome": "Cunha Ascendente",
+          "formacao": "Linhas de tendência convergentes inclinadas para cima"
+        },
+        {
+          "nome": "Cunha Descendente",
+          "formacao": "Linhas de tendência convergentes inclinadas para baixo"
+        },
+        {
+          "nome": "Mastro e Bandeira",
+          "formacao": "Mastro (movimento forte, mínimo 3 candles) + Bandeira (consolidação, mínimo 3 candles)",
+          "sinal": "continuidade"
+        }
+      ]
+    },
+    {
+      "modulo": "9",
+      "titulo": "Médias Móveis",
+      "fonte": "curso10",
+      "conceitos": [
+        {
+          "nome": "9.1 Por Que Usar",
+          "descricao": "Médias exponenciais mais sensíveis que aritméticas; cada tipo tem vantagens/desvantagens"
+        },
+        {
+          "nome": "9.2 Tendências nas Médias",
+          "descricao": "MM9=tendência terciária (curto prazo); MMA21=tendência secundária (médio prazo); MMA200=tendência primária (longo prazo)"
+        },
+        {
+          "nome": "9.3 Quando Utilizar",
+          "descricao": "Funciona bem em mercados em tendência; em mercados laterais as médias não são respeitadas"
+        },
+        {
+          "nome": "9.4 Rompimento e Virada da Média",
+          "descricao": "Sinal de possível mudança de tendência"
+        },
+        {
+          "nome": "9.5 Afinamento das Médias",
+          "descricao": "Aproximação/cruzamento de médias de prazos diferentes pode sinalizar mudança de regime"
+        }
+      ]
+    },
+    {
+      "modulo": "10",
+      "titulo": "Estratégias (Setups de Entrada e Saída)",
+      "fonte": "curso11",
+      "conceitos": [
+        {
+          "nome": "10.1 Barra de Ignição",
+          "descricao": "Rompimento com candle de fechamento forte além de uma lateralização estreita; risco/alvo medido pela máxima/mínima da barra"
+        },
+        {
+          "nome": "10.2 Rompimento de Lateralização Estreita (RLE)",
+          "descricao": "Mesma lógica da barra de ignição aplicada a lateralizações estreitas"
+        },
+        {
+          "nome": "10.3 1º Teste",
+          "descricao": "1ª correção na média (MMA21) após RLE; MM9 e MMA21 devem estar favoráveis; MMA200 não pode obstruir o alvo"
+        },
+        {
+          "nome": "10.4 Setup I2",
+          "descricao": "Setup baseado em medição de máxima/mínima de candle específico (detalhe textual não totalmente capturado)"
+        },
+        {
+          "nome": "10.5 Preço de Referência",
+          "descricao": "Uso de preço-chave anterior como referência para entradas/saídas"
+        },
+        {
+          "nome": "10.6 Realização Frustrada",
+          "descricao": "Contrapé de traders contra a tendência; 3 candles de exaustão da correção; MM9/MMA21 favoráveis, MMA200 sem obstruir alvo"
+        },
+        {
+          "nome": "10.7 Barra Contrária",
+          "descricao": "Mesma lógica da Realização Frustrada, aplicada dentro de uma correção"
+        },
+        {
+          "nome": "10.9 Mapa dos Gráficos",
+          "descricao": "Fluxograma de decisão para escolher ativos a operar, considerando correção vs. rompimento"
+        }
+      ],
+      "tabela_estrategias_compra": [
+        {
+          "estrategia": "Barra de Ignição",
+          "entrada": "Superação da máxima do candle sinal",
+          "saida": "Perda da mínima do candle sinal",
+          "risco": null
+        },
+        {
+          "estrategia": "Rompimento de Lateralização Estreita",
+          "entrada": "Superação da máxima do candle sinal",
+          "saida": "Perda da mínima do candle sinal",
+          "risco": null
+        },
+        {
+          "estrategia": "1º Teste",
+          "entrada": "Superação da máxima do candle sinal",
+          "saida": "Perda da mínima do candle sinal",
+          "risco": "1.5%"
+        },
+        {
+          "estrategia": "Setup I2",
+          "entrada": "Superação da máxima do candle sinal",
+          "saida": "Perda da mínima do candle sinal",
+          "risco": null
+        },
+        {
+          "estrategia": "Preço de Referência",
+          "entrada": "Superação da máxima do candle sinal",
+          "saida": "Perda da mínima do candle sinal",
+          "risco": null
+        },
+        {
+          "estrategia": "Realização Frustrada",
+          "entrada": "Superação da máxima mais alta entre 3-5 candles",
+          "saida": "Perda da mínima mais baixa entre 3-5 candles",
+          "risco": "2%"
+        }
+      ],
+      "nota": "Tabela espelhada para venda (short) também aparece no material, não confirmada célula a célula pela imagem"
+    },
+    {
+      "modulo": "11",
+      "titulo": "Manejo de Risco",
+      "fonte": "curso12",
+      "conceitos": [
+        {
+          "nome": "11.1 Trader Vencedor",
+          "descricao": "Sem manejo de risco a bolsa vira cassino; questão central: quanto investir por trade"
+        },
+        {
+          "nome": "11.2 Cara ou Coroa",
+          "descricao": "Como um sistema aleatório pode ser vencedor",
+          "formulas": {
+            "taxa_acerto": "nº operações com lucro / nº total de operações",
+            "media_ganhos": "soma dos ganhos das operações vencedoras / nº operações vencedoras",
+            "media_perdas": "soma das perdas das operações perdedoras / nº operações perdedoras",
+            "payoff": "média de ganhos / média de perdas",
+            "expectativa_matematica": "(taxa de acerto x média de ganho) - (taxa de erro x média de perda)",
+            "drawdown_maximo": "(pico acumulado máximo - vale acumulado após o pico) / pico acumulado máximo"
+          }
+        },
+        {
+          "nome": "11.3 Sistema Percentual",
+          "descricao": "Acelera nos ganhos, freia nas perdas; % de risco fixa; começar em 0,5%, nunca ultrapassar 2% por operação; regra dos 6% ao mês; capital mínimo sugerido R$1.000"
+        },
+        {
+          "nome": "11.4 Sistema com Alavancagem",
+          "descricao": "Aplicação do sistema percentual com capital alavancado; uso de calculadora de tamanho de posição"
+        },
+        {
+          "nome": "11.5 Perfil de Risco",
+          "descricao": "Adequação do manejo de risco ao perfil do trader (não detalhado nos frames)"
+        }
+      ]
+    },
+    {
+      "modulo": "12",
+      "titulo": "Tipos de Ordens",
+      "fonte": "curso13",
+      "conceitos": [
+        {
+          "nome": "Tipos gerais",
+          "descricao": "Ordem gatilho/stop, ordem limite, ordem a mercado (Ask/Bid), offset"
+        },
+        {
+          "nome": "Ordem a Mercado",
+          "descricao": "Compra (long): executa ao melhor preço do Ask. Venda (short) ou encerrar compra: executa ao melhor preço do Bid"
+        },
+        {
+          "nome": "Offset",
+          "descricao": "Paga-se preço mais caro por margem de segurança; define faixa de preço para execução. Ex.: compra stop 100,020 aceita pagar até 100,030; venda stop 100,075 aceita até 100,065. Offset muito grande pode gerar execução a preço bem pior"
+        }
+      ]
+    },
+    {
+      "modulo": "13",
+      "titulo": "Padrões de Candlestick Adicionais",
+      "fonte": "pesquisa_internet",
+      "padroes": [
+        {
+          "nome": "Three White Soldiers",
+          "n_candles": 3,
+          "formacao": "3 candles verdes/brancos consecutivos, cada um abrindo dentro do corpo anterior e fechando perto da máxima",
+          "sinal": "reversao_alta",
+          "obs": "Sinal chega atrasado pois precisa de 3 candles para confirmar"
+        },
+        {
+          "nome": "Three Black Crows",
+          "n_candles": 3,
+          "formacao": "3 candles vermelhos/pretos consecutivos, cada um fechando abaixo do fechamento anterior",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Estrela da Manhã (Morning Star)",
+          "n_candles": 3,
+          "formacao": "Candle vermelho grande + candle pequeno/doji (gap para baixo ideal) + candle verde grande fechando acima do ponto médio do 1º",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Estrela da Tarde (Evening Star)",
+          "n_candles": 3,
+          "formacao": "Candle verde grande + candle pequeno/doji (gap para cima ideal) + candle vermelho grande fechando abaixo do ponto médio do 1º",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Tweezer Top",
+          "n_candles": 2,
+          "formacao": "Candle verde continuando alta + candle vermelho com máxima praticamente igual à do 1º",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Tweezer Bottom",
+          "n_candles": 2,
+          "formacao": "Candle vermelho continuando baixa + candle verde com mínima praticamente igual à do 1º",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Abandoned Baby Bullish",
+          "n_candles": 3,
+          "formacao": "Candle vermelho grande -> gap para baixo -> doji -> gap para cima -> candle verde grande",
+          "sinal": "reversao_alta",
+          "obs": "Padrão raro, com dois gaps sem sobreposição de sombras"
+        },
+        {
+          "nome": "Abandoned Baby Bearish",
+          "n_candles": 3,
+          "formacao": "Sequência espelhada da versão bullish",
+          "sinal": "reversao_baixa"
+        }
+      ]
+    },
+    {
+      "modulo": "14",
+      "titulo": "Padrões Gráficos Complementares",
+      "fonte": "pesquisa_internet",
+      "padroes": [
+        {
+          "nome": "Cup and Handle",
+          "formacao": "Recuo + recuperação arredondada em U (xícara) + pequena consolidação rasa (alça, no máx 1/3 da xícara) abaixo da resistência",
+          "sinal": "continuidade_alta",
+          "obs": "Popularizado por William O'Neil (1988); melhor em gráficos de prazo mais longo"
+        },
+        {
+          "nome": "Ombro-Cabeça-Ombro (OCO) - detalhamento",
+          "formacao": "3 picos, cabeça mais alta que os ombros; linha de pescoço liga os 2 fundos entre os picos",
+          "confirmacao": "Rompimento da linha de pescoço para baixo",
+          "alvo": "Distância cabeça-pescoço projetada para baixo a partir do rompimento",
+          "sinal": "reversao_baixa"
+        }
+      ]
+    },
+    {
+      "modulo": "15",
+      "titulo": "Indicadores Técnicos",
+      "fonte": "pesquisa_internet",
+      "indicadores": [
+        {
+          "nome": "IFR / RSI",
+          "criador": "J. Welles Wilder Jr. (1978)",
+          "escala": "0-100",
+          "leitura": "Acima de 70 = sobrecompra; abaixo de 30 = sobrevenda; cruzamento da linha 50 indica viés de força",
+          "uso_avancado": "Divergências entre preço e RSI alertam possível reversão"
+        },
+        {
+          "nome": "MACD",
+          "criador": "Gerald Appel",
+          "componentes": {
+            "linha_macd": "EMA12 - EMA26",
+            "linha_sinal": "EMA9 da linha MACD",
+            "histograma": "linha MACD - linha de sinal"
+          },
+          "sinais": [
+            "Cruzamento com linha de sinal",
+            "Cruzamento do zero",
+            "Divergências"
+          ]
+        },
+        {
+          "nome": "Bandas de Bollinger",
+          "criador": "John Bollinger",
+          "componentes": "SMA central (20 períodos) + bandas superior/inferior a 2 desvios-padrão",
+          "leitura": "Bandas largas = alta volatilidade; bandas estreitas = baixa volatilidade (possível início de novo movimento)"
+        },
+        {
+          "nome": "OBV (On Balance Volume)",
+          "criador": "Joseph Granville (1963)",
+          "formula": "Soma o volume quando fecha em alta, subtrai quando fecha em baixa (total acumulado)",
+          "uso": "Confirmação de tendência e detecção de divergências preço x volume"
+        },
+        {
+          "nome": "Fibonacci Retração/Extensão",
+          "niveis_retracao": [
+            "23.6%",
+            "38.2%",
+            "50%",
+            "61.8%",
+            "78.6%"
+          ],
+          "niveis_extensao": [
+            "61.8%",
+            "100%",
+            "138.2%",
+            "161.8%"
+          ],
+          "uso": "Projetar zonas potenciais de suporte/resistência dentro (retração) ou além (extensão) de um movimento"
+        }
+      ]
+    },
+    {
+      "modulo": "16",
+      "titulo": "Teoria de Dow",
+      "fonte": "pesquisa_internet",
+      "autor": "Charles Dow (fim do séc. XIX)",
+      "principios": [
+        "O preço desconta tudo",
+        "O mercado tem 3 tendências: primária (1-3 anos), secundária (3 semanas-3 meses, contrária à primária), terciária (menos de 3 semanas)",
+        "A tendência primária tem 3 fases: acumulação, participação pública, distribuição",
+        "O volume deve confirmar a tendência",
+        "A tendência permanece válida até sinal claro de reversão",
+        "Usar preços de fechamento como referência mais relevante"
+      ]
+    },
+    {
+      "modulo": "17",
+      "titulo": "Estrutura de Mercado (Price Action Moderno / SMC)",
+      "fonte": "pesquisa_internet",
+      "conceitos": [
+        {
+          "nome": "HH/HL",
+          "descricao": "Higher High / Higher Low - topos e fundos ascendentes, define estrutura de alta"
+        },
+        {
+          "nome": "LH/LL",
+          "descricao": "Lower High / Lower Low - topos e fundos descendentes, define estrutura de baixa"
+        },
+        {
+          "nome": "BOS (Break of Structure)",
+          "descricao": "Rompimento que confirma continuidade da tendência vigente"
+        },
+        {
+          "nome": "CHoCH (Change of Character)",
+          "descricao": "Primeira quebra contrária à estrutura vigente; alerta antecipado de reversão"
+        },
+        {
+          "nome": "Zonas de Liquidez",
+          "descricao": "Regiões com concentração de ordens/stops, geralmente logo além de topos/fundos evidentes"
+        },
+        {
+          "nome": "Order Blocks",
+          "descricao": "Última região de candles antes de um movimento impulsivo forte, tratada como possível zona de suporte/resistência"
+        }
+      ],
+      "regras_estrutura": [
+        "Rompimento de um topo confirma o fundo anterior",
+        "Rompimento de um fundo confirma o topo anterior",
+        "Estrutura vira de alta para baixa: preço rompe fundo confirmado ou forma fundo mais baixo",
+        "Estrutura vira de baixa para alta: preço rompe topo confirmado ou forma topo mais alto"
+      ]
+    },
+    {
+      "modulo": "18",
+      "titulo": "Gaps (Janelas de Preço)",
+      "fonte": "pesquisa_internet",
+      "tipos": [
+        {
+          "nome": "Gap Comum",
+          "descricao": "Ocorre em lateralização, pouco significado técnico, tende a fechar rápido"
+        },
+        {
+          "nome": "Gap de Ruptura (Breakaway)",
+          "descricao": "Sinaliza início de tendência forte, geralmente com alto volume"
+        },
+        {
+          "nome": "Gap de Continuação (Runaway)",
+          "descricao": "Ocorre no meio de tendência já estabelecida, reforça o movimento"
+        },
+        {
+          "nome": "Gap de Exaustão",
+          "descricao": "Ocorre perto do fim de um movimento forte, volume baixo, tende a reverter"
+        }
+      ],
+      "estrategias": [
+        "Gap Fill (apostar no fechamento do gap)",
+        "Gap and Go (operar a favor do movimento que criou o gap)"
+      ]
+    },
+    {
+      "modulo": "19",
+      "titulo": "Horários e Sessão de Negociação (B3)",
+      "fonte": "pesquisa_internet",
+      "notas": [
+        "Maior liquidez/volatilidade: abertura (~10h) e fechamento (a partir das 16h)",
+        "Leilão do mercado futuro (mini índice/mini dólar) por volta das 8h55, referência de preço antes da abertura oficial",
+        "Muitos traders profissionais concentram operações pela manhã até ~11h-12h"
+      ]
+    },
+    {
+      "modulo": "20",
+      "titulo": "Psicologia do Trader",
+      "fonte": "pesquisa_internet",
+      "conceitos": [
+        {
+          "nome": "Emoções centrais",
+          "descricao": "Medo, ganância, euforia e ansiedade, amplificadas no day trade"
+        },
+        {
+          "nome": "Revenge Trading",
+          "descricao": "Tentar recuperar perda rapidamente assumindo risco maior que o normal"
+        },
+        {
+          "nome": "Repetição de erros por viés emocional",
+          "descricao": "Repetir ações que geraram ganho no passado sem embasamento técnico, confundindo sorte com competência"
+        },
+        {
+          "nome": "Boas práticas",
+          "descricao": "Plano de trading com regras pré-definidas, registro/revisão de operações, prática em conta demo"
+        }
+      ]
+    },
+    {
+      "modulo": "21",
+      "titulo": "Fundamentos e Introdução ao Mercado Financeiro",
+      "fonte": "aldeia_trilha_introducao",
+      "conceitos": [
+        {
+          "nome": "O que é o Mercado Financeiro",
+          "descricao": "Introdução conceitual ao funcionamento do mercado financeiro"
+        },
+        {
+          "nome": "Dicas para iniciantes",
+          "descricao": "Focar no processo de aprendizado em vez de resultados; cuidado com falta de gestão de contas"
+        }
+      ]
+    },
+    {
+      "modulo": "22",
+      "titulo": "Anatomia do Candle (fundamentos formais)",
+      "fonte": "pesquisa_internet",
+      "obs": "Video original corrompido (9_anatomia_dos_candles.mp4); reconstruido via pesquisa",
+      "conceitos": [
+        {
+          "nome": "OHLC",
+          "descricao": "Open, High, Low, Close - os 4 precos que formam cada candle"
+        },
+        {
+          "nome": "Corpo",
+          "descricao": "Distancia entre abertura e fechamento; verde/branco = alta, vermelho/preto = baixa"
+        },
+        {
+          "nome": "Sombras/Pavios",
+          "descricao": "Linhas que mostram maxima (sombra superior) e minima (sombra inferior) do periodo"
+        },
+        {
+          "nome": "Leitura de intensidade",
+          "descricao": "Corpos longos = pressao forte; corpos curtos = indecisao; sombras longas = reversao parcial do movimento dentro do periodo"
+        },
+        {
+          "nome": "Origem historica",
+          "descricao": "Criado por arrozeiros japoneses no seculo XVIII; popularizado no Ocidente por Steve Nison"
+        }
+      ]
+    },
+    {
+      "modulo": "23",
+      "titulo": "Gestão de Risco por Capital e Payoff Detalhado",
+      "fonte": [
+        "aldeia_explorador_1",
+        "pesquisa_internet"
+      ],
+      "conceitos": [
+        {
+          "nome": "Gestão de risco escalonada",
+          "descricao": "Licoes praticas com $100/$500/$1000; % de risco constante, valor e lote mudam proporcionalmente ao capital"
+        },
+        {
+          "nome": "Ajustando o Lote",
+          "descricao": "Tamanho do lote recalculado a cada operacao para manter risco percentual constante"
+        },
+        {
+          "nome": "Formula tamanho de posicao",
+          "formula": "Tamanho da posicao = (Capital total x % de risco) / (distancia ate o stop em R$ por unidade)"
+        },
+        {
+          "nome": "Payoff Positivo",
+          "descricao": "Ganho medio maior que perda media; permite lucro mesmo com taxa de acerto abaixo de 50%"
+        },
+        {
+          "nome": "Payoff Negativo",
+          "descricao": "Perda media maior que ganho medio; exige taxa de acerto bem mais alta (60-70%+) so para empatar"
+        },
+        {
+          "nome": "Payoff Neutro",
+          "descricao": "Ganho e perda medios equivalentes (~1:1); resultado depende quase so da taxa de acerto"
+        },
+        {
+          "nome": "Relacao Risco-Retorno",
+          "formula": "Lucro potencial / Perda potencial (ex: alvo 500 e stop 250 = relacao 2:1)"
+        },
+        {
+          "nome": "Posicionamento de stops na pratica",
+          "descricao": "Stop posicionado abaixo de um cluster de minimas (zona de suporte), nao em ponto arbitrario"
+        }
+      ]
+    },
+    {
+      "modulo": "24",
+      "titulo": "Compreendendo o Mercado: Preço, Horários e Teoria de Dow",
+      "fonte": [
+        "aldeia_explorador_2",
+        "aldeia_mestre",
+        "pesquisa_internet"
+      ],
+      "conceitos": [
+        {
+          "nome": "Compreendendo Preco no Mercado",
+          "descricao": "Formacao do preco pelo encontro entre ofertas de compra (bid) e venda (ask)"
+        },
+        {
+          "nome": "Melhor Horario para Operar",
+          "descricao": "Reforca Modulo 19; aula dedicada confirma importancia pratica do tema"
+        },
+        {
+          "nome": "Teoria de Dow",
+          "descricao": "Reforca Modulo 16 como base oficial do curso para leitura de tendencia"
+        },
+        {
+          "nome": "Analise Pre-Mercado",
+          "descricao": "B3 tem leilao de pre-abertura ~15min antes do pregao; pratica de checar noticias/dados macro e niveis-chave antes da abertura"
+        }
+      ]
+    },
+    {
+      "modulo": "25",
+      "titulo": "Setups Práticos (nomenclatura Aldeia)",
+      "fonte": "aldeia_explorador_2",
+      "conceitos": [
+        {
+          "nome": "Setup MM9",
+          "descricao": "Uso da MM9 como referencia dinamica de suporte/resistencia de curtissimo prazo"
+        },
+        {
+          "nome": "Setup Suporte e Resistencia",
+          "descricao": "Reforca Modulo 6"
+        },
+        {
+          "nome": "Setup LTA e LTB",
+          "descricao": "Reforca modulo de Linhas de Tendencia"
+        },
+        {
+          "nome": "Setup Padrao de Reversao",
+          "descricao": "Citado ao final da trilha, nao detalhado (resolucao insuficiente)"
+        }
+      ],
+      "obs": "Curso Aldeia usa 'setup' onde o primeiro curso usa 'estrategia' (Modulo 10) - mesma ideia"
+    },
+    {
+      "modulo": "26",
+      "titulo": "Ferramentas Avançadas: Fibonacci e Pivot Point",
+      "fonte": [
+        "aldeia_mestre",
+        "pesquisa_internet"
+      ],
+      "conceitos": [
+        {
+          "nome": "Fibonacci aplicado",
+          "descricao": "Aula pratica de tracado de retracao sobre movimento de alta; reforca Modulo 15"
+        },
+        {
+          "nome": "Pivot Point",
+          "formulas": {
+            "PP": "(Maxima + Minima + Fechamento anterior) / 3",
+            "R1": "(2 x PP) - Minima",
+            "S1": "(2 x PP) - Maxima",
+            "R2": "PP + (Maxima - Minima)",
+            "S2": "PP - (Maxima - Minima)"
+          },
+          "uso": "Day trade usa pivo diario; swing usa semanal; longo prazo usa mensal. Preco acima do PP = vies de alta",
+          "conexao": "Conecta-se aos pivos P1/P2/T1 do Modulo 5"
+        },
+        {
+          "nome": "Figuras Graficas Avancado",
+          "descricao": "Reforca Modulos 8/14 (padroes graficos), conteudo detalhado nao capturado"
+        },
+        {
+          "nome": "Padroes de Candles Avancado",
+          "descricao": "Reforca Modulos 3/13 (padroes de candle), conteudo detalhado nao capturado"
+        }
+      ]
+    },
+    {
+      "modulo": "27",
+      "titulo": "Performance, Mentalidade e Pullback",
+      "fonte": [
+        "aldeia_mestre",
+        "pesquisa_internet"
+      ],
+      "conceitos": [
+        {
+          "nome": "Analise de Performance",
+          "descricao": "Revisao sistematica dos proprios resultados"
+        },
+        {
+          "nome": "Transformando Erros em Estrategias",
+          "descricao": "Tratar erros como insumo para refinar o sistema, nao como fracasso"
+        },
+        {
+          "nome": "Sem Riscos, Sem Crescimento",
+          "descricao": "Crescimento consistente exige aceitar risco calculado; conecta-se ao Modulo 11 e ao payoff positivo"
+        },
+        {
+          "nome": "Pullback",
+          "descricao": "Recuo temporario e de curto prazo dentro de uma tendencia maior, sem forca para revertê-la",
+          "diferenca_reversao": "Pullback ocorre em menor volume e para em nivel tecnico relevante (suporte/resistencia/MM/Fibonacci); reversao vem com volume mais alto e rompe esses niveis",
+          "estrategias": [
+            "Comprar no pullback de alta perto de suporte/MM",
+            "Vender no pullback de baixa perto de resistencia"
+          ]
+        },
+        {
+          "nome": "Tendencia de Alta / Tendencia de Baixa",
+          "descricao": "Aulas dedicadas a cada contexto, conteudo falado nao capturado"
+        }
+      ]
+    },
+    {
+      "modulo": "28",
+      "titulo": "Macroeconomia para Trading",
+      "fonte": [
+        "aldeia_macroeconomia",
+        "pesquisa_internet"
+      ],
+      "conceitos": [
+        {
+          "nome": "Correlacao Dolar-Ibovespa",
+          "descricao": "Desde 1999 (cambio flutuante), correlacao media proxima de -0.5, negativa em ~96% do tempo",
+          "mecanismo": "Confianca no Brasil -> capital estrangeiro entra -> Real forte + Ibovespa sobe -> dolar cai. Incerteza -> capital sai -> dolar sobe + Ibovespa cai",
+          "dado_extra": "Em quedas do Ibovespa superiores a 2%, dolar sobe em ~87% dos casos"
+        },
+        {
+          "nome": "Calendario Economico",
+          "descricao": "Ferramenta (estilo Investing.com) para acompanhar horario, pais, importancia e valores real/previsto/anterior"
+        },
+        {
+          "nome": "Principais Dados EUA",
+          "lista": [
+            "IPC/CPI (inflacao)",
+            "Payroll (empregos)",
+            "Taxa de Juros (FED)",
+            "PMI (atividade industrial/servicos)",
+            "PIB (crescimento)"
+          ]
+        },
+        {
+          "nome": "Leitura dos Dados",
+          "descricao": "O desvio entre valor real e previsto (consenso) gera mais reacao de preco que o numero absoluto"
+        },
+        {
+          "nome": "Volatilidade em torno de noticias",
+          "descricao": "Picos de volatilidade concentrados nos minutos ao redor da divulgacao; spreads podem alargar e stops podem ser 'engolidos'"
+        }
+      ]
+    },
+    {
+      "modulo": "29",
+      "titulo": "Bibliografia Fundamental",
+      "fonte": "pesquisa_internet",
+      "livros": [
+        {
+          "titulo": "Japanese Candlestick Charting Techniques (2a ed)",
+          "autor": "Steve Nison",
+          "aborda": "Introducao da tecnica japonesa ao Ocidente; anatomia dos padroes primarios; filosofia de Homma; padrao so faz sentido no contexto da tendencia maior"
+        },
+        {
+          "titulo": "Beyond Candlesticks",
+          "autor": "Steve Nison",
+          "aborda": "Renko, Kagi, Three-Line Break combinados com candles"
+        },
+        {
+          "titulo": "The Candlestick Course",
+          "autor": "Steve Nison",
+          "aborda": "Formato didatico progressivo com quiz por capitulo"
+        },
+        {
+          "titulo": "Encyclopedia of Candlestick Charts",
+          "autor": "Thomas N. Bulkowski",
+          "aborda": "Mais de 100 variacoes de padroes testadas estatisticamente (ver Modulo 30)"
+        },
+        {
+          "titulo": "Candlestick Charting Explained",
+          "autor": "Gregory L. Morris",
+          "aborda": "Quantificacao de regras visuais em formulas para backtesting; necessidade de tolerancia na definicao de doji"
+        },
+        {
+          "titulo": "Reading Price Charts Bar by Bar / trilogia Trading Price Action (Trends/Trading Ranges/Reversals)",
+          "autor": "Al Brooks",
+          "aborda": "Mercado sempre em tendencia ou trading range; Breakouts, Magnets (S/R), Pullbacks, Trading Ranges; conceito de direcao presumida ate prova em contrario"
+        }
+      ],
+      "portais_oficiais": [
+        "candlecharts.com (Nison)",
+        "thepatternsite.com (Bulkowski)"
+      ]
+    },
+    {
+      "modulo": "30",
+      "titulo": "Estatísticas Reais de Padrões (Bulkowski)",
+      "fonte": "pesquisa_internet",
+      "estatisticas": [
+        {
+          "padrao": "Martelo (Hammer)",
+          "taxa_reversao": "60%",
+          "obs": "Rank de reversao 26/103; rank geral de performance 65/103 (movimento pos-reversao costuma ser curto)"
+        },
+        {
+          "padrao": "Estrela Cadente (Shooting Star)",
+          "taxa_reversao": "59%",
+          "obs": "Classificado por Bulkowski como 'efetivamente aleatorio'; raro (~2.7% dos candles em amostra de 2M candles do S&P500)"
+        },
+        {
+          "padrao": "Estrela da Manha (Morning Star)",
+          "taxa_reversao": "78%",
+          "obs": "Padrao de 3 candles, bem mais confiavel que os de 1 candle"
+        },
+        {
+          "padrao": "Engolfo de Baixa",
+          "taxa_reversao": "~79%",
+          "obs": "Ja citado no Modulo 3"
+        },
+        {
+          "padrao": "Padrao Penetrante",
+          "taxa_reversao": "~64%",
+          "obs": "Ja citado no Modulo 3"
+        }
+      ],
+      "ressalvas": [
+        "Estatisticas vem de mercados/periodos especificos (majoritariamente acoes dos EUA); podem nao valer igual em outros mercados",
+        "Taxa de reversao e diferente de rank de performance (um padrao pode reverter frequentemente mas gerar movimento pequeno)",
+        "Padroes raros (baixa frequencia) geram poucas oportunidades reais mesmo com boa taxa de acerto"
+      ]
+    },
+    {
+      "modulo": "31",
+      "titulo": "Padrões de Continuação Adicionais (Sakata Goho)",
+      "fonte": "pesquisa_internet",
+      "padroes": [
+        {
+          "nome": "Rising Three Methods",
+          "n_candles": 5,
+          "formacao": "Candle verde longo + 3 candles pequenos baixistas contidos na faixa do 1o + candle verde longo fechando acima do fechamento do 1o",
+          "sinal": "continuidade_alta",
+          "equivalente_ocidental": "Bandeira/flag (Modulo 8)"
+        },
+        {
+          "nome": "Falling Three Methods",
+          "n_candles": 5,
+          "formacao": "Espelho baixista exato do Rising Three Methods",
+          "sinal": "continuidade_baixa"
+        }
+      ],
+      "outros_citados_sem_detalhamento": [
+        "Tasuki Gap (alta/baixa)",
+        "Mat Hold",
+        "On Neck",
+        "In Neck"
+      ]
+    },
+    {
+      "modulo": "32",
+      "titulo": "Metodologia James16 (ForexFactory) - Entrada em Pin Bar",
+      "fonte": "pesquisa_internet_forum",
+      "filosofia": "Indicadores mostram o passado, Price Action indica o futuro. Foco em comprar recuos dentro de tendencias estabelecidas",
+      "setup_entrada": [
+        "1. Identificar zona de confluencia: S/R + linha de tendencia + Fibonacci + numero redondo",
+        "2. Esperar pin bar se formar exatamente nessa zona",
+        "3. Entrada no rompimento do 'nariz' (ponta da sombra) na direcao da reversao",
+        "4. Stop na outra extremidade do pin bar",
+        "5. Alvo na proxima zona de confluencia (PPZ)",
+        "6. Risco de 2-3% por operacao"
+      ],
+      "nuance": "Pin bar com nariz grande em relacao ao corpo = rejeicao mais forte = maior probabilidade de movimento maior",
+      "glossario": {
+        "PA": "Price Action",
+        "PB": "Pin Bar",
+        "IB": "Inside Bar",
+        "BUOB/BEOB": "Bullish/Bearish Outside Bar (like Engolfo mas pela faixa inteira)",
+        "S/R": "Suporte/Resistencia",
+        "RN/BRN": "Round Number/Big Round Number",
+        "TL": "Trend Line",
+        "BO": "Breakout",
+        "BO+PB": "Breakout + Pullback",
+        "RET": "Retracement",
+        "DIV": "Divergence",
+        "CT": "Counter-Trend",
+        "SL/TP": "Stop Loss/Take Profit",
+        "PPZ": "Price Pivot Zone",
+        "SFP": "Swing Failure Pattern (rompimento que falha e reverte rapido, tipo trap)"
+      }
+    },
+    {
+      "modulo": "33",
+      "titulo": "Armadilhas de Mercado: Bull Trap, Bear Trap e Caça a Stops",
+      "fonte": "pesquisa_internet",
+      "conceitos": [
+        {
+          "nome": "Bull Trap",
+          "descricao": "Rompimento de resistencia que atrai compradores mas nao sustenta, revertendo com forca para baixo"
+        },
+        {
+          "nome": "Bear Trap",
+          "descricao": "Espelho: rompe suporte, atrai vendedores, reverte para cima"
+        },
+        {
+          "nome": "Stop Hunting",
+          "descricao": "Player institucional empurra preco alem de nivel com cluster de stops, gera aparencia de rompimento forte, depois inverte"
+        }
+      ],
+      "como_diferenciar_rompimento_real": [
+        "Fechamento: valido fecha alem do nivel; trap volta pra dentro no mesmo candle ou seguinte",
+        "Volume: valido tem volume crescente; trap tem volume fraco",
+        "Velocidade do retorno: reversao rapida (1-2 candles) e sinal de alerta",
+        "Reteste: valido segura o nivel rompido como novo S/R; trap falha no reteste"
+      ]
+    },
+    {
+      "modulo": "34",
+      "titulo": "Order Flow e Microestrutura de Mercado",
+      "fonte": "pesquisa_internet",
+      "conceitos": [
+        {
+          "nome": "Order Book",
+          "descricao": "Lista de bids e asks por preco; spread = diferenca entre melhor bid e melhor ask"
+        },
+        {
+          "nome": "Absorcao",
+          "descricao": "Um lado absorve consistentemente a pressao do outro em um preco especifico, sem ceder - sinal de S/R forte"
+        },
+        {
+          "nome": "Footprint Chart / Volume Profile",
+          "descricao": "Mostra volume negociado dentro de cada faixa de preco de um candle, nao so o total"
+        },
+        {
+          "nome": "POC (Point of Control)",
+          "descricao": "Preco com maior volume negociado no periodo; age como ima de preco"
+        },
+        {
+          "nome": "Zonas de volume",
+          "descricao": "Alto volume = S/R forte (muita concordancia); baixo volume = atravessado rapidamente quando revisitado"
+        }
+      ],
+      "conexao": "Da o 'porque' por tras de conceitos ja ensinados de forma simples: forca do suporte (Modulo 6.4), stop abaixo de cluster de minimas (Modulo 23)"
+    },
+    {
+      "modulo": "35",
+      "titulo": "Sabedoria de Comunidade (Reddit, BabyPips, fóruns)",
+      "fonte": "pesquisa_internet_forum",
+      "aviso": "Opiniao recorrente de traders em foruns publicos, nao estudo controlado - heuristica de senso comum, nao regra garantida",
+      "conselhos": [
+        "Comece simples: S/R + 2-3 padroes de candle antes de adicionar mais ferramentas",
+        "Pratique o olho em timeframes menores, mas sinais em timeframes maiores tendem a ser mais confiaveis",
+        "Defina um 'time stop': saia se a operacao nao andar a favor em N candles definidos",
+        "Nunca amplie o stop contra a propria posicao, so mova a favor",
+        "Combine price action com contexto de suporte/demanda, nunca use padrao isolado",
+        "Mantenha diario de operacoes e revise cada trade",
+        "Progressao: estudar -> demo -> registrar tudo -> real so apos consistencia em demo"
+      ]
+    },
+    {
+      "modulo": "36",
+      "titulo": "Origem Histórica Aprofundada (Munehisa Homma)",
+      "fonte": "pesquisa_internet",
+      "fatos": [
+        "Homma (1724-1803), comerciante de arroz de Sakata, Japao, tradicionalmente chamado de pai do candlestick",
+        "Metodo registrado no 'Sakata Goho' (Regras de Sakata), atribuido ao livro 'A Fonte do Ouro' (San-en Kinsen Roku)",
+        "Nuance historiografica: Homma pode ter criado a logica/metodo, mas a representacao visual exata do candle pode ter se consolidado ~1 seculo depois - ponto discutido, nao consenso fechado",
+        "Popularizacao no Ocidente ocorreu so nos anos 1990, via Steve Nison, ~200 anos depois de Homma"
+      ]
+    },
+    {
+      "modulo": "37",
+      "titulo": "Método Wyckoff (Acumulação e Distribuição)",
+      "fonte": "pesquisa_internet",
+      "conceito_central": "Composite Man - tratar o mercado como um operador grande e racional orquestrando acumulacao/distribuicao",
+      "esquema_acumulacao": {
+        "fase_A": "PS (Preliminary Support), SC (Selling Climax), AR (Automatic Rally)",
+        "fase_B": "Consolidacao (a 'causa'), multiplos testes",
+        "fase_C": "Spring - rompe brevemente a minima e reverte rapido (bear trap classico)",
+        "fase_D": "SOS (Sign of Strength), LPS (Last Point of Support)",
+        "fase_E": "Saida da faixa, inicio da tendencia de alta"
+      },
+      "esquema_distribuicao": "Espelho: PSY, BC (Buying Climax), AR, Upthrust (UT), UTAD (Upthrust After Distribution), SOW (Sign of Weakness), LPSY (Last Point of Supply)",
+      "ressalva": "Esquemas sao resumos conceituais, nao roteiro obrigatorio. Mais facil identificar em retrospecto. Sem estudo estatistico amplamente aceito comprovando previsibilidade consistente"
+    },
+    {
+      "modulo": "38",
+      "titulo": "VSA (Volume Spread Analysis)",
+      "fonte": "pesquisa_internet",
+      "autor": "Tom Williams (TradeGuider)",
+      "base": "Construido sobre Wyckoff; cruza volume, spread (amplitude) e posicao do fechamento dentro da amplitude",
+      "sinais": [
+        {
+          "nome": "No Demand",
+          "leitura": "Candle de alta, corpo estreito, volume baixo -> falta de interesse comprador"
+        },
+        {
+          "nome": "No Supply",
+          "leitura": "Candle de baixa, corpo estreito, volume baixo -> falta de interesse vendedor"
+        },
+        {
+          "nome": "Stopping Volume",
+          "leitura": "Volume muito alto no fim de um movimento -> possivel reversao"
+        },
+        {
+          "nome": "Climax (compra/venda)",
+          "leitura": "Volume extremo exaustivo no extremo da tendencia -> fim provavel do movimento"
+        },
+        {
+          "nome": "Shakeout",
+          "leitura": "Rompimento rapido que reverte forte -> equivale ao Spring do Wyckoff"
+        },
+        {
+          "nome": "Test",
+          "leitura": "Reteste de maxima/minima com volume baixo -> confirma ausencia de oferta/demanda contraria"
+        }
+      ],
+      "regra_geral": "Volume alto + amplitude estreita = algo escondido (absorcao institucional). Volume baixo + amplitude larga = pouca conviccao real"
+    },
+    {
+      "modulo": "39",
+      "titulo": "ICT / Smart Money Concepts (aprofundamento do Módulo 17)",
+      "fonte": "pesquisa_internet",
+      "autor": "Michael J. Huddleston (ICT)",
+      "conceitos": [
+        {
+          "nome": "Fair Value Gap (FVG)",
+          "descricao": "3 candles onde movimento agressivo deixa vazio entre sombra do 1o e do 3o; preco tende a voltar para preencher antes de continuar"
+        },
+        {
+          "nome": "Order Block (OB)",
+          "descricao": "Ultimo candle contrario antes de impulso forte; zona onde ordem institucional iniciou o movimento"
+        },
+        {
+          "nome": "Liquidity Sweep/Grab",
+          "descricao": "Mesma ideia do Spring/Upthrust (Wyckoff) e SFP (Modulo 32) com outro nome"
+        },
+        {
+          "nome": "BSL/SSL",
+          "descricao": "Buy-Side/Sell-Side Liquidity - zonas acima de topos (BSL) e abaixo de fundos (SSL) onde stops se acumulam"
+        }
+      ],
+      "killzones_EST": {
+        "asiatica": "~20h-00h EST",
+        "londres": "~02h-05h EST",
+        "ny_am": "~08h30-11h EST",
+        "ny_pm": "~13h30-16h EST"
+      },
+      "ressalva": "Framework discricionario, subjetivo na identificacao de OB/FVG validos; sem validacao estatistica publica independente (diferente do Modulo 30/Bulkowski)"
+    },
+    {
+      "modulo": "40",
+      "titulo": "Panorama de Prop Trading / Contas Fundeadas (2026)",
+      "fonte": "pesquisa_internet",
+      "conceito": "Empresas vendem desafio pago com meta de lucro e limites de perda; quem passa recebe conta fundeada, dividindo lucro (80-100% para o trader)",
+      "pontos_de_atencao": [
+        "Mais de 90% dos desafios pagos falham (dado citado por sites do setor)",
+        "Maioria das prop firms nao e regulada como corretora (nao broker-dealer, nao CFTC/NFA nos EUA)",
+        "2024-2025: alertas regulatorios na Italia, Belgica, Espanha, Australia; crackdown MetaQuotes fev/2024 fechou 80-100 firms",
+        "Regras de drawdown intradiario ficaram mais comuns e rigidas em 2025-2026 - conferir regulamento atualizado antes de operar"
+      ],
+      "nota": "Nao e recomendacao a favor ou contra - setor regulatorio em mudanca rapida, dado factual em set/2026"
+    },
+    {
+      "modulo": "41",
+      "titulo": "Análise Multi-Timeframe (Top-Down)",
+      "fonte": "pesquisa_internet",
+      "logica": "Mercado e fractal - mesmo padrao se repete em diferentes escalas de tempo",
+      "abordagem_top_down": [
+        "1. Timeframe maior (semanal/diario) -> define tendencia/vies principal",
+        "2. Timeframe medio (4h/1h) -> refina estrutura, zonas de S/R relevantes",
+        "3. Timeframe menor (15min/5min) -> gatilho de entrada exato dentro da zona validada"
+      ],
+      "erros_comuns": [
+        "Usar timeframes demais (sinais conflitantes)",
+        "Deixar timeframe menor mandar na decisao",
+        "Mudar de vies no meio de uma operacao aberta"
+      ],
+      "limitacao_para_analise_de_foto": "Uma unica foto so mostra 1 timeframe - sem contexto do timeframe maior/menor a nao ser que o usuario informe ou envie mais imagens"
+    },
+    {
+      "modulo": "42",
+      "titulo": "Kelly Criterion e Position Sizing Ótimo",
+      "fonte": "pesquisa_internet",
+      "autor": "John L. Kelly Jr. (Bell Labs, 1956)",
+      "formula": "Kelly % = W - [(1-W)/R] onde W=taxa de acerto decimal, R=payoff (ganho medio/perda media)",
+      "exemplo": "W=55%, R=2.0 -> Kelly% = 0.55 - (0.45/2.0) = 32.5%",
+      "fracoes_kelly": {
+        "kelly_cheio": "32.5% no exemplo - nunca recomendado (1 em 3 chance de drawdown de 50%)",
+        "meio_kelly": "~16% no exemplo - ainda agressivo",
+        "quarto_kelly": "~8% no exemplo - ponto de partida mais comum"
+      },
+      "tabela_amostra_vs_fracao": [
+        {
+          "n_operacoes": "menos de 50",
+          "confianca": "muito baixa",
+          "fracao_recomendada": "nao usar Kelly, ficar no 1% fixo"
+        },
+        {
+          "n_operacoes": "50-150",
+          "confianca": "baixa-moderada",
+          "fracao_recomendada": "25% do Kelly cheio"
+        },
+        {
+          "n_operacoes": "150-300",
+          "confianca": "moderada",
+          "fracao_recomendada": "33% do Kelly cheio"
+        },
+        {
+          "n_operacoes": "300-500",
+          "confianca": "moderada-alta",
+          "fracao_recomendada": "40-50% do Kelly cheio"
+        },
+        {
+          "n_operacoes": "500+",
+          "confianca": "alta",
+          "fracao_recomendada": "ate 50% do Kelly cheio, nunca mais"
+        }
+      ],
+      "ressalva": "Extremamente sensivel a erro de estimativa - 5 pontos percentuais de erro na taxa de acerto pode mudar o Kelly em 3x"
+    },
+    {
+      "modulo": "43",
+      "titulo": "Risco de Ruína (Risk of Ruin)",
+      "fonte": "pesquisa_internet",
+      "pergunta_central": "Qual a probabilidade de uma estrategia com edge positivo quebrar a conta antes desse edge se realizar no longo prazo?",
+      "formula": "RoR = [(1-A)/(1+A)]^N onde A=edge do trader, N=numero de unidades de risco na conta (capital/risco por operacao)",
+      "exemplos": [
+        {
+          "taxa_acerto": "60%",
+          "risco_por_operacao": "1%",
+          "N": 100,
+          "risco_ruina": "~0.0000000000000000025 (essencialmente zero)"
+        },
+        {
+          "taxa_acerto": "60%",
+          "risco_por_operacao": "10%",
+          "N": 10,
+          "risco_ruina": "~1.7% (1 em 60)"
+        },
+        {
+          "taxa_acerto": "60%",
+          "risco_por_operacao": "25%",
+          "N": 4,
+          "risco_ruina": "~19.8% (1 em 5)"
+        }
+      ],
+      "licao_central": "Reduzir risco por operacao reduz o Risco de Ruina de forma EXPONENCIAL, nao linear. Dobrar o risco pode multiplicar a chance de ruina por 8x ou mais",
+      "regra_pratica": "Nao deixar o ponto de ruina definido ultrapassar 25-30% da conta"
+    },
+    {
+      "modulo": "44",
+      "titulo": "Matemática de Recuperação de Drawdown",
+      "fonte": "pesquisa_internet",
+      "formula": "Ganho necessario para recuperar = [1/(1-perda%)] - 1",
+      "tabela_recuperacao": [
+        {
+          "perda": "5%",
+          "ganho_necessario": "5.3%"
+        },
+        {
+          "perda": "10%",
+          "ganho_necessario": "11.1%"
+        },
+        {
+          "perda": "20%",
+          "ganho_necessario": "25.0%"
+        },
+        {
+          "perda": "25%",
+          "ganho_necessario": "33.3%"
+        },
+        {
+          "perda": "30%",
+          "ganho_necessario": "42.9%"
+        },
+        {
+          "perda": "40%",
+          "ganho_necessario": "66.7%"
+        },
+        {
+          "perda": "50%",
+          "ganho_necessario": "100.0%"
+        },
+        {
+          "perda": "75%",
+          "ganho_necessario": "300.0%"
+        },
+        {
+          "perda": "90%",
+          "ganho_necessario": "900.0%"
+        }
+      ],
+      "licao_central": "Perda e recuperacao nao sao simetricas porque a recuperacao e calculada sobre uma base de capital menor. A curva piora de forma acelerada a partir de ~30% de perda"
+    },
+    {
+      "modulo": "45",
+      "titulo": "R-Multiples e o Sistema de Van Tharp",
+      "fonte": "pesquisa_internet",
+      "autor": "Van Tharp (Definitive Guide to Position Sizing)",
+      "conceito_R": "R = risco inicial da operacao = distancia entrada-stop x tamanho da posicao. Trade no stop = -1R; trade com 2x o risco = +2R",
+      "vantagem": "+2R significa a mesma coisa em qualquer ativo/tamanho de conta - torna operacoes comparaveis entre si",
+      "expectativa_em_R": "(Taxa de acerto x Ganho medio em R) - (Taxa de erro x Perda media em R)",
+      "pre_requisito": "Trade precisa ter stop definido ANTES da entrada para virar um R valido - sem stop nao existe R (risco 'infinito')",
+      "SQN": "System Quality Number - relaciona expectativa media em R com desvio-padrao dessa distribuicao, ajustado pelo numero de operacoes; mede consistencia, nao so qualidade media",
+      "registro_por_operacao": [
+        "preco de entrada",
+        "stop inicial (obrigatorio)",
+        "tamanho da posicao",
+        "preco de saida"
+      ]
+    },
+    {
+      "modulo": "46",
+      "titulo": "Limites de Perda Diária (Circuit Breakers Pessoais)",
+      "fonte": "pesquisa_internet",
+      "conceito": "Camada de protecao acima do stop loss - stop limita dano de 1 operacao, limite diario limita dano de uma sequencia de operacoes ruins",
+      "estrutura_dois_estagios": {
+        "soft_limit": "50-75% do limite diario maximo - reduzir tamanho de posicao, nao adicionar risco novo",
+        "hard_limit": "maximo absoluto do dia - parar de operar sem excecao"
+      },
+      "formas_de_definir_limite": [
+        "Em R: parar apos perder X R no dia (ex: -3R)",
+        "Valor fixo ou % da conta: parar ao perder R$X ou X% no dia",
+        "Limite movel (trailing): parar ao devolver X do pico de lucro do dia",
+        "Perdas consecutivas: parar apos N operacoes perdedoras seguidas (ex: 3)",
+        "Limite de horario: parar de operar depois de certo horario"
+      ],
+      "conexao": "Prop firms (Modulo 40) ja usam essa logica obrigatoriamente - maior causa de reprovacao em desafios e quebra de disciplina apos sequencia ruim, nao falta de edge"
+    },
+    {
+      "modulo": "47",
+      "titulo": "Mecânica de Margem, Alavancagem e Chamada de Margem",
+      "fonte": "pesquisa_internet",
+      "conceitos": [
+        {
+          "nome": "Margem",
+          "descricao": "Valor bloqueado como garantia para manter posicao alavancada aberta"
+        },
+        {
+          "nome": "Nivel de margem",
+          "formula": "Patrimonio (equity) / Margem utilizada x 100%"
+        },
+        {
+          "nome": "Chamada de margem (margin call)",
+          "descricao": "Aviso quando nivel de margem cai abaixo do limite (60-100% tipico, varia por corretora) - alerta para agir, posicoes ainda nao fecham automaticamente"
+        },
+        {
+          "nome": "Stop-out",
+          "descricao": "Nivel mais baixo (20-50% tipico) onde o corretor fecha automaticamente as posicoes mais deficitarias"
+        },
+        {
+          "nome": "Risco sem stop",
+          "descricao": "Sem stop definido, risco e tecnicamente ilimitado ate a posicao ser liquidada pelo stop-out"
+        }
+      ]
+    },
+    {
+      "modulo": "48",
+      "titulo": "Margem de Garantia B3 (dados oficiais atuais)",
+      "fonte": "b3.com.br (oficial)",
+      "vigencia": "a partir de 02/02/2026",
+      "margem_minima_day_trade": [
+        {
+          "contrato": "Minicontrato Futuro de Indice (WIN)",
+          "margem": "R$ 155,00"
+        },
+        {
+          "contrato": "Minicontrato de Dolar (WDO)",
+          "margem": "R$ 140,00"
+        },
+        {
+          "contrato": "Futuro de Bitcoin (BIT)",
+          "margem": "R$ 45,00"
+        },
+        {
+          "contrato": "Futuro de Ether (ETR)",
+          "margem": "R$ 70,00"
+        },
+        {
+          "contrato": "Futuro de Solana (SOL)",
+          "margem": "R$ 85,00"
+        },
+        {
+          "contrato": "Futuro Micro de Indice Bovespa",
+          "margem": "R$ 65,00"
+        },
+        {
+          "contrato": "Futuro de Ouro (GLD)",
+          "margem": "R$ 135,00"
+        },
+        {
+          "contrato": "Futuro de Indice S&P B3 Bovespa VIX",
+          "margem": "R$ 40,00"
+        }
+      ],
+      "nota": "Valores sao piso regulatorio da B3 - corretoras podem exigir mais",
+      "ajuste_diario_WIN": "ADt = (PAt - PO) x R$0.20 x N contratos",
+      "margem_inicial_vs_manutencao": "Inicial exigida para abrir posicao; manutencao e o minimo para mante-la aberta durante o dia",
+      "aviso": "Valores revistos periodicamente pela B3 (WIN subiu de R$10 para R$155 na ultima revisao) - sempre reconfirmar valor vigente"
+    },
+    {
+      "modulo": "49",
+      "titulo": "O Que a Academia Diz Sobre Padrões de Candle (Evidência Mista)",
+      "fonte": "pesquisa_internet_academica",
+      "estudos": [
+        {
+          "estudo": "Caginalp & Laurent (1998)",
+          "mercado": "Acoes dos EUA",
+          "resultado": "Um dos primeiros a favor do poder preditivo"
+        },
+        {
+          "estudo": "S&P 500 1992-1996",
+          "mercado": "Acoes dos EUA",
+          "resultado": "Significancia estatistica a favor, ~1% lucro potencial em 2 dias, mas desafia Hipotese de Mercado Eficiente"
+        },
+        {
+          "estudo": "Jonsson (2016)",
+          "mercado": "Bolsa sueca NASDAQ OMXS30, 2007-2015",
+          "resultado": "Visao geral negativa - pouco valor preditivo ou de lucratividade"
+        },
+        {
+          "estudo": "Hutton (2015) Universidade Cidade do Cabo",
+          "mercado": "Small caps EUA S&P 600",
+          "resultado": "Nenhuma evidencia estatisticamente significativa"
+        },
+        {
+          "estudo": "Jamaloodeen, Heinz e Pollacia (2018)",
+          "mercado": "S&P 500, 60 anos",
+          "resultado": "Martelo e Estrela Cadente mais confiaveis medidos por minima/maxima, nao pelo fechamento"
+        },
+        {
+          "estudo": "REIT VNQ 2008-2024",
+          "mercado": "Fundo imobiliario EUA",
+          "resultado": "Resultados mistos dependendo do padrao"
+        },
+        {
+          "estudo": "SET50 2006-2016",
+          "mercado": "Acoes da Tailandia",
+          "resultado": "Pouca utilidade - retornos nao diferentes de zero estatisticamente"
+        },
+        {
+          "estudo": "SSE50",
+          "mercado": "Acoes chinesas",
+          "resultado": "Nenhum retorno liquido positivo, mesmo com machine learning"
+        }
+      ],
+      "como_interpretar": [
+        "Contexto (mercado, periodo, forma de medicao) importa mais que o resultado isolado de qualquer estudo",
+        "Estudos mais recentes e com metodologia mais robusta tendem a ser mais ceticos que os antigos",
+        "Bulkowski (Modulo 30) e analise seria de um unico pesquisador, nao tem o mesmo status de paper academico revisado por pares",
+        "Conclusao pratica defensavel: tratar padrao de candle como fator de leitura de contexto/gestao de decisao, nao como sinal com edge estatistico garantido isoladamente"
+      ]
+    },
+    {
+      "modulo": "50",
+      "titulo": "Regra do Pattern Day Trader (PDT) nos EUA — extinção em 2026",
+      "fonte": "pesquisa_internet_regulatoria",
+      "regra_historica": "Desde 2001 (FINRA Rule 4210), conta com 4+ day trades em 5 dias uteis (>6% da atividade) exigia US$25.000 de patrimonio minimo",
+      "mudanca_2026": {
+        "aprovacao_SEC": "14 de abril de 2026",
+        "anuncio_FINRA": "20 de abril de 2026",
+        "data_efetiva": "4 de junho de 2026",
+        "transicao": "ate 18 meses para corretoras que precisarem de ajuste de sistema"
+      },
+      "o_que_substitui": "Exigencias de margem intradiaria em tempo real, bloqueando operacoes com deficit de margem - foco muda de 'quantas vezes opera' para 'tem dinheiro suficiente para o risco'"
+    },
+    {
+      "modulo": "51",
+      "titulo": "Regulação Europeia (ESMA): Limites de Alavancagem Forex/CFD",
+      "fonte": "pesquisa_internet_regulatoria",
+      "limites_alavancagem_varejo": [
+        {
+          "instrumento": "Pares de moeda principais (EUR/USD)",
+          "alavancagem_max": "30:1"
+        },
+        {
+          "instrumento": "Pares nao principais, ouro, indices principais",
+          "alavancagem_max": "20:1"
+        },
+        {
+          "instrumento": "Outras commodities e indices nao principais",
+          "alavancagem_max": "10:1"
+        },
+        {
+          "instrumento": "Acoes individuais",
+          "alavancagem_max": "5:1"
+        },
+        {
+          "instrumento": "Criptomoedas",
+          "alavancagem_max": "2:1"
+        }
+      ],
+      "protecoes_obrigatorias": [
+        "Margin close-out em 50% do minimo exigido",
+        "Protecao contra saldo negativo (cliente nao perde mais que depositou)"
+      ],
+      "dado_que_motivou_regulacao": "74% a 89% das contas de varejo operando CFDs perdiam dinheiro, perda media entre 1600-29000 euros por cliente"
+    },
+    {
+      "modulo": "52",
+      "titulo": "Disclosure Oficial de Risco de Day Trade (FINRA Rule 2270)",
+      "fonte": "finra.org (oficial)",
+      "pontos_do_disclosure": [
+        "Day trade pode ser extremamente arriscado, geralmente nao apropriado para quem tem recursos limitados, pouca experiencia e baixa tolerancia a risco",
+        "Trader deve estar preparado para perder todo o capital destinado ao day trade",
+        "Nao financiar day trade com poupanca de aposentadoria, emprestimo estudantil, segunda hipoteca, fundo de emergencia, dinheiro de educacao/moradia ou despesas de vida",
+        "Evidencias indicam que capital abaixo de US$50.000 prejudica significativamente a capacidade de lucro do day trader (e US$50.000+ nao garante sucesso)",
+        "Desconfiar de propaganda ou promessas de lucros grandes com day trade"
+      ],
+      "relevancia": "Texto regulatorio obrigatorio, sem filtro comercial - contraponto direto a marketing de curso/prop firm"
+    },
+    {
+      "modulo": "53",
+      "titulo": "Origem Documentada: Studies in Tape Reading (Wyckoff, 1910)",
+      "fonte": "pesquisa_internet",
+      "fatos": [
+        "Publicado originalmente em 1910 sob pseudonimo 'Rollo Tape'; so na edicao de 1924 apareceu o nome de Wyckoff",
+        "Considerado o trabalho mais importante de Wyckoff, um dos textos fundadores do tape reading",
+        "Cobre: ordens stop, significado dos volumes, tecnica de mercado, oportunidades em mercados lateralizados",
+        "Semente conceitual do que hoje chamamos de order flow (Modulo 34) e do proprio metodo Wyckoff (Modulo 37)"
+      ],
+      "nota_acesso": "Texto de 1910 esta em dominio publico nos EUA, mas nao foi localizada nesta pesquisa uma fonte verificada (ex: Internet Archive) - apenas reimpressoes comerciais modernas a venda"
+    },
+    {
+      "modulo": "54",
+      "titulo": "Fóruns Adicionais Pesquisados (TradingView)",
+      "fonte": "pesquisa_internet",
+      "descricao": "TradingView Ideas - maior rede social de graficos do mundo, conteudo nao curado de qualquer nivel de experiencia",
+      "utilidade_real": "Nao para copiar analises, mas para medir sentimento de mercado - posicionamento muito unilateral historicamente tende a estar errado nos extremos (contrarianismo classico)"
+    },
+    {
+      "modulo": "55",
+      "titulo": "Como Notícia Vira Movimento de Candle (Framework Geral)",
+      "fonte": "pesquisa_internet_academica",
+      "dado_academico": "Estudo cruzando eventos noticiosos com precos de alta frequencia (EUA e zona do euro, desde 2002) encontrou que noticias explicam ~50% de toda variacao de preco observada nos mercados",
+      "categorias_que_movem_graficos": [
+        "1. Dados economicos agendados: juros, inflacao, payroll, PIB, PMI (data/hora conhecida, resultado incerto)",
+        "2. Noticias corporativas: earnings, fusoes/aquisicoes, lancamento/falha de produto",
+        "3. Eventos geopoliticos: guerras, eleicoes, sancoes - fluem por peso/inflacao/juros/acoes, tipicamente risk-off",
+        "4. Falas nao agendadas de bancos centrais (Fedspeak), intervencoes cambiais"
+      ],
+      "4_perguntas_de_trader_profissional": [
+        "1. Foi surpresa? (real vs esperado, nao valor absoluto)",
+        "2. Quao precisa/definitiva e a informacao?",
+        "3. Contem informacao nova sobre o futuro (PIB/inflacao/politica monetaria)?",
+        "4. Isso ja estava precificado?"
+      ]
+    },
+    {
+      "modulo": "56",
+      "titulo": "Buy the Rumor, Sell the News",
+      "fonte": "pesquisa_internet",
+      "mecanica": "Traders compram antecipando resultado positivo antes da confirmacao oficial, empurrando preco para cima. Quando noticia sai (mesmo positiva), realizam lucro vendendo - preco pode cair apesar de noticia boa",
+      "por_que_acontece": "Mercado precifica o futuro - se resultado ja estava embutido no preco pela expectativa, confirmacao nao traz informacao nova",
+      "quando_nao_se_confirma": "Se noticia surpreende alem do precificado, ou fatores mais amplos sobrepoem o evento especifico",
+      "riscos": [
+        "Timing incerto",
+        "Movimentos rapidos dificeis de gerenciar",
+        "Vies de confirmacao (ver padrao onde nao existe)"
+      ]
+    },
+    {
+      "modulo": "57",
+      "titulo": "Leitura Prática dos Primeiros Minutos Após Notícia de Alto Impacto",
+      "fonte": "pesquisa_internet_forum",
+      "erro_comum": "Reagir ao proprio spike inicial - geralmente a parte menos informativa (stops disparando, algoritmos, spread alargando - ruido mecanico)",
+      "framework_4_passos": [
+        "1. Estabelecer a base antes do evento: observar amplitude/volume medio dos candles pre-noticia",
+        "2. Separar o spike da reacao: deixar primeiros candles imprimir, ver se preco segura ou volta",
+        "3. Ler volume junto com direcao do fechamento: fechamento forte com volume crescente = participacao real; com volume caindo = perdendo folego (No Demand/No Supply, Modulo 38)",
+        "4. Esperar o reteste: como o preco se comporta no reteste do nivel pre-noticia e o sinal mais confiavel (conecta Modulo 33)"
+      ],
+      "conexao_com_candle": "Pavio longo inferior pos-noticia = compradores rejeitaram precos baixos testados no susto inicial; pavio longo superior = vendedores rejeitaram precos altos - mesma leitura do Modulo 3/22, com robustez extra por ter mais participantes reagindo simultaneamente"
+    },
+    {
+      "modulo": "58",
+      "titulo": "VWAP (Volume Weighted Average Price)",
+      "fonte": "pesquisa_internet",
+      "definicao": "Preco medio negociado no dia, ponderado pelo volume em cada nivel - reinicia toda sessao",
+      "formula": "VWAP = Soma(Preco tipico x Volume) / Soma(Volume), onde Preco tipico = (Maxima+Minima+Fechamento)/3",
+      "usos": [
+        "Vies direcional: preco acima = comprado, abaixo = vendido",
+        "Suporte/resistencia dinamica intradiaria",
+        "Benchmark de execucao institucional (comprar abaixo da VWAP = boa execucao)",
+        "Reversao a media quando preco se afasta muito da linha"
+      ],
+      "ressalva": "VWAP nao tem poder preditivo isolado - utilidade vem de ser amplamente respeitada como referencia de preco justo do dia, nao de gerar sinal por si so"
+    },
+    {
+      "modulo": "59",
+      "titulo": "ATR (Average True Range): Stop e Alvo por Volatilidade",
+      "fonte": "pesquisa_internet",
+      "autor": "J. Welles Wilder Jr.",
+      "calculo": {
+        "true_range": "Maior valor entre: (Maxima-Minima atual), |Maxima atual - Fechamento anterior|, |Minima atual - Fechamento anterior|",
+        "ATR": "Media movel do True Range, tipicamente 14 periodos"
+      },
+      "aplicacoes": [
+        "Stop por volatilidade: Distancia = ATR x multiplicador (1.5 a 3x comum)",
+        "Exemplo: risco R$100, stop 2xATR, ATR=R$0.25 -> distancia stop R$0.50 -> posicao = 200 unidades",
+        "Filtro de rompimento: ATR subindo pode sinalizar inicio de rompimento real; ATR baixo precede lateralizacao",
+        "ATR em 2 timeframes: comparar ATR do timeframe operado com ATR diario mostra quanto do range do dia ja foi consumido"
+      ]
+    },
+    {
+      "modulo": "60",
+      "titulo": "Opening Range Breakout (ORB)",
+      "fonte": "pesquisa_internet",
+      "autor": "Arthur Merrill (anos 1960)",
+      "definicao": "Faixa entre maxima e minima nos primeiros minutos apos abertura (janelas comuns: 5, 15, 30min)",
+      "regra_entrada": "Rompimento acima da maxima da faixa = comprado; abaixo da minima = vendido",
+      "nuance_timeframe": "Faixas maiores (30min) geram menos sinais falsos que faixas menores (5min), ao custo de entrar mais tarde",
+      "taxa_acerto_tipica": "40-55% dependendo dos filtros (sem filtro ~40%, com tendencia+VWAP alinhados ~55%)",
+      "conexao": "Aplicacao especifica com horario definido do conceito de Barra de Ignicao/RLE (Modulo 10.1/10.2)"
+    },
+    {
+      "modulo": "61",
+      "titulo": "Padrões de Candle Adicionais",
+      "fonte": "pesquisa_internet",
+      "padroes": [
+        {
+          "nome": "Belt Hold Bullish",
+          "n_candles": 1,
+          "formacao": "Candle verde que abre na minima da sessao (gap para baixo ideal) e fecha forte sem sombra inferior",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Belt Hold Bearish",
+          "n_candles": 1,
+          "formacao": "Espelho: abre na maxima, fecha forte sem sombra superior",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Counterattack Lines Bullish",
+          "n_candles": 2,
+          "formacao": "Em baixa: candle vermelho grande + candle verde que abre com gap para baixo mas fecha igual ao fechamento anterior",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Counterattack Lines Bearish",
+          "n_candles": 2,
+          "formacao": "Espelho em tendencia de alta",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Separating Lines",
+          "n_candles": 2,
+          "formacao": "2o candle cor oposta ao 1o, mas abre no mesmo preco e e um belt hold de corpo longo",
+          "sinal": "continuidade"
+        },
+        {
+          "nome": "Harami Cross",
+          "n_candles": 2,
+          "formacao": "Como Harami, mas o 2o candle e um doji contido no corpo do 1o",
+          "sinal": "reversao_mais_forte_que_harami"
+        },
+        {
+          "nome": "Three-Line Strike",
+          "n_candles": 4,
+          "formacao": "3 candles na direcao da tendencia + 1 candle oposto que engolfa os 3 anteriores",
+          "sinal": "continuidade",
+          "obs": "Contraintuitivo - parece reversao mas e classificado como continuidade"
+        },
+        {
+          "nome": "Tri-Star",
+          "n_candles": 3,
+          "formacao": "3 dojis consecutivos, o do meio gapando para fora dos outros dois",
+          "sinal": "reversao_rara"
+        },
+        {
+          "nome": "Advance Block",
+          "n_candles": 3,
+          "formacao": "3 candles de alta com corpos cada vez menores e sombras superiores cada vez maiores",
+          "sinal": "alerta_exaustao_alta"
+        },
+        {
+          "nome": "Matching Low",
+          "n_candles": 2,
+          "formacao": "2 candles vermelhos com fechamentos praticamente identicos em tendencia de baixa",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Stick Sandwich",
+          "n_candles": 3,
+          "formacao": "Vermelho + verde + vermelho, 1o e 3o fecham no mesmo nivel",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Ladder Bottom",
+          "n_candles": 5,
+          "formacao": "Sequencia de baixa perdendo forca seguida de reversao mais firme",
+          "sinal": "reversao_alta",
+          "obs": "Variante rara, pouco padronizada entre fontes"
+        }
+      ]
+    },
+    {
+      "modulo": "62",
+      "titulo": "Padrões Harmônicos (baseados em Fibonacci)",
+      "fonte": "pesquisa_internet",
+      "conceito": "Padroes geometricos formados por 4-5 pontos de pivo (X-A-B-C-D) cujas proporcoes seguem razoes de Fibonacci, definindo uma PRZ (Potential Reversal Zone)",
+      "tabela_fibonacci": [
+        {
+          "padrao": "Gartley",
+          "XA_AB": "0.618",
+          "AB_BC": "0.382-0.886",
+          "BC_CD": "1.27-1.618",
+          "XA_AD": "0.786"
+        },
+        {
+          "padrao": "Bat",
+          "XA_AB": "0.382-0.50",
+          "AB_BC": "0.382-0.886",
+          "BC_CD": "1.618-2.618",
+          "XA_AD": "0.886"
+        },
+        {
+          "padrao": "Butterfly",
+          "XA_AB": "0.786",
+          "AB_BC": "0.382-0.886",
+          "BC_CD": "1.618-2.618",
+          "XA_AD": "1.27-1.618"
+        },
+        {
+          "padrao": "Crab",
+          "XA_AB": "0.382-0.618",
+          "AB_BC": "0.382-0.886",
+          "BC_CD": "2.618-3.618",
+          "XA_AD": "1.618"
+        },
+        {
+          "padrao": "Deep Crab",
+          "XA_AB": "0.886",
+          "AB_BC": "0.382-0.886",
+          "BC_CD": "2.0-3.618",
+          "XA_AD": "1.618"
+        },
+        {
+          "padrao": "Shark",
+          "XA_AB": "0.382-0.618",
+          "AB_BC": "1.13-1.618",
+          "BC_CD": "1.618-2.24",
+          "XA_AD": "sem ancora em X"
+        },
+        {
+          "padrao": "Cypher",
+          "XA_AB": "-",
+          "AB_BC": "1.13-1.414 de XA",
+          "BC_CD": "0.786 de XC",
+          "XA_AD": "-"
+        },
+        {
+          "padrao": "ABCD",
+          "XA_AB": "-",
+          "AB_BC": "perna AB aprox = perna CD",
+          "BC_CD": "-",
+          "XA_AD": "-"
+        }
+      ],
+      "ressalva": "Framework popular mas sem validacao estatistica academica publica independente e robusta - mesma categoria de ressalva do ICT/SMC (Modulo 39) e Wyckoff (Modulo 37)"
+    },
+    {
+      "modulo": "63",
+      "titulo": "Padrões Gráficos Adicionais",
+      "fonte": "pesquisa_internet",
+      "padroes": [
+        {
+          "nome": "Diamond Top",
+          "formacao": "Fase 1 alargamento (megafone) + Fase 2 estreitamento - 4 linhas formam losango",
+          "sinal": "reversao_baixa",
+          "obs": "Raro mas considerado confiavel"
+        },
+        {
+          "nome": "Diamond Bottom",
+          "formacao": "Espelho, apos tendencia de baixa",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Broadening Formation (Megafone)",
+          "formacao": "2 linhas de tendencia divergentes, pelo menos 2 topos e 2 fundos alternados",
+          "sinal": "geralmente_reversao"
+        },
+        {
+          "nome": "Triple Top",
+          "formacao": "Como Topo Duplo mas com 3o teste da resistencia",
+          "sinal": "reversao_baixa",
+          "obs": "Sinal mais forte que duplo por ter 3 toques"
+        },
+        {
+          "nome": "Triple Bottom",
+          "formacao": "Espelho",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Rounding Bottom (Saucer)",
+          "formacao": "Reversao longa e gradual em U, de baixa para alta",
+          "sinal": "reversao_alta",
+          "obs": "Confiavel mas lenta de se formar, conecta com Wyckoff"
+        },
+        {
+          "nome": "Rounding Top (Reverse Saucer)",
+          "formacao": "Espelho, formato de arco invertido",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Pennant",
+          "formacao": "Pequeno triangulo simetrico apos movimento forte (mastro)",
+          "sinal": "continuidade",
+          "obs": "Parecido com Bandeira mas formato de triangulo, nao de canal"
+        }
+      ]
+    },
+    {
+      "modulo": "64",
+      "titulo": "Pipeline de Backtest: Detecção de Padrão + Bootstrap",
+      "fonte": "calculo_proprio_dado_real",
+      "fonte_dado": "abcbourse.com - cotacao BRL-USD, OHLC diario real, 30 pregoes (04/08/2026 a 14/09/2026)",
+      "conversao": "Dado veio em BRL/USD (inverso da convencao do projeto); invertido para USD/BRL com high/low trocando de posicao: high_novo=1/low_original, low_novo=1/high_original",
+      "algoritmo_deteccao": {
+        "marubozu": "corpo > 90% da amplitude",
+        "doji": "corpo < 10% da amplitude",
+        "martelo_enforcado": "sombra inferior > 55% + sombra superior < 15% + corpo pequeno",
+        "martelo_invertido_estrela_cadente": "sombra superior > 55% + sombra inferior < 15% + corpo pequeno",
+        "spinning_top": "corpo pequeno com sombras relevantes dos 2 lados",
+        "engolfo": "comparacao de corpo com candle anterior"
+      },
+      "resultado_deteccao": {
+        "total_candles": 30,
+        "total_ocorrencias": 10,
+        "contagem": {
+          "Doji": 3,
+          "Engolfo de Baixa": 2,
+          "Spinning Top": 2,
+          "Enforcado": 1,
+          "Marubozu de Baixa": 1,
+          "Engolfo de Alta": 1
+        },
+        "obs": "Todos com N=1 a 3, insuficiente para conclusao (Modulo 42/43 exige N>=50)"
+      },
+      "bootstrap": {
+        "metodo": "Reamostragem aleatoria COM reposicao dos 29 retornos diarios reais, 1000 iteracoes (numero padrao da literatura estatistica)",
+        "resultado": "IC 95% para retorno medio diario: [-0.216%, +0.201%] - inclui zero, sem vies direcional demonstravel",
+        "positivos_em_1000": "485 (48.5%) - proximo de 50/50"
+      },
+      "aviso_metodologico": "Rodar calculo deterministico repetidamente sobre o MESMO dado (ex: pedido do usuario de 'rodar 60x/120x') nao altera resultado nem aumenta amostra - nao equivale a bootstrap nem a coletar mais dados. Documentado para nao repetir o equivoco",
+      "conclusao": "Pipeline funciona e e reaplicavel. Gargalo e volume de dado historico real, nao repeticao de calculo. Necessario 1-2 anos de OHLC diario (idealmente do ativo negociado, ex WIN/WDO) para resultado que sustente decisao"
+    },
+    {
+      "modulo": "65",
+      "titulo": "8 Livros/Recursos Gratuitos Legítimos (Inglês)",
+      "fonte": "pesquisa_internet_dominio_publico_e_oficial",
+      "criterio": "Apenas fontes genuinamente gratuitas: dominio publico verificado ou recursos oficiais/educacionais sempre distribuidos de graca pelo autor. Nenhum e-book pago disfarcado de gratis ou site de pirataria foi usado",
+      "recursos": [
+        {
+          "titulo": "Reminiscences of a Stock Operator",
+          "autor": "Edwin Lefevre",
+          "ano": 1923,
+          "status": "Dominio publico confirmado (Project Gutenberg #60979)",
+          "ensina": "Psicologia de mercado - nunca discutir com a fita, cortar perdas rapido e deixar ganhos correrem, os 4 inimigos do especulador (ignorancia, ganancia, medo, esperanca)"
+        },
+        {
+          "titulo": "Studies in Tape Reading",
+          "autor": "Richard D. Wyckoff (pseudonimo Rollo Tape)",
+          "ano": 1910,
+          "status": "Dominio publico confirmado (archive.org, NYPL/UC Libraries)",
+          "ensina": "Leitura de fita original, identificar grande interesse comprando/vendendo pelo padrao de execucao, uso de stops como parte central da tecnica"
+        },
+        {
+          "titulo": "The ABC of Stock Speculation",
+          "autor": "S.A. Nelson",
+          "ano": "1902/1903",
+          "status": "Dominio publico confirmado (archive.org, UC Libraries)",
+          "ensina": "Origem literal do termo 'Dow Theory' - Nelson compilou e batizou os editoriais de Charles Dow neste livro"
+        },
+        {
+          "titulo": "Wyckoff Method of Tape Reading",
+          "autor": "Richard D. Wyckoff",
+          "status": "Dominio publico / arquivo aberto (archive.org)",
+          "ensina": "Lei da oferta e demanda como base de tudo - quando demanda excede oferta preco sobe, e vice-versa"
+        },
+        {
+          "titulo": "Guia de Protecao ao Consumidor",
+          "autor": "CFTC (orgao governamental dos EUA)",
+          "status": "Dominio publico (obra do governo dos EUA)",
+          "ensina": "Como identificar fraude, abuso e praticas manipulativas em mercados de futuros"
+        },
+        {
+          "titulo": "FINRA Rule 2270 - Day-Trading Risk Disclosure",
+          "autor": "FINRA (regulador dos EUA)",
+          "status": "Dominio publico (regulacao oficial), ja referenciado no Modulo 52",
+          "ensina": "Disclosure obrigatorio de risco de day trade"
+        },
+        {
+          "titulo": "School of Pipsology",
+          "autor": "BabyPips",
+          "status": "Gratuito por decisao editorial do site",
+          "ensina": "Curso completo estruturado em niveis - ja fonte de boa parte da base (Modulos 3, 15, 18, 35, 39)"
+        },
+        {
+          "titulo": "Biblioteca de Analise Tecnica",
+          "autor": "Investopedia",
+          "status": "Gratuito (modelo de negocio publicidade/afiliados)",
+          "ensina": "Maior enciclopedia gratuita de financas em ingles, usada como fonte de verificacao cruzada de definicoes"
+        }
+      ],
+      "sintese": [
+        "Psicologia de mercado tem raiz historica de 100+ anos (Lefevre) - erros comportamentais do Modulo 20 sao humanos, nao 'coisa de amador moderno'",
+        "Origem literal do order flow (Wyckoff) e da Dow Theory (Nelson) - fonte primaria verdadeira, nao so resumo de terceiros",
+        "O material gratuito mais confiavel tende a vir de quem tem obrigacao legal de ser honesto (CFTC/FINRA), nao de quem vende curso"
+      ]
+    },
+    {
+      "modulo": "66",
+      "titulo": "Novos Padrões de Candle (Strike.money)",
+      "fonte": "imagem_educacional_strike",
+      "padroes": [
+        {
+          "nome": "Matching High",
+          "n_candles": 2,
+          "formacao": "2 topos com maximas praticamente identicas em tendencia de alta",
+          "sinal": "alerta_topo"
+        },
+        {
+          "nome": "Bearish Breakaway",
+          "n_candles": 5,
+          "formacao": "Candle de alta longo + gap + 3 intermediarios + candle de baixa que fecha dentro do gap",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Tower Top",
+          "n_candles": "varios",
+          "formacao": "Candle de alta forte + varios pequenos + candle de baixa forte",
+          "sinal": "reversao_baixa"
+        },
+        {
+          "nome": "Tower Bottom",
+          "n_candles": "varios",
+          "formacao": "Espelho do Tower Top",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "On Neck",
+          "n_candles": 2,
+          "formacao": "Candle de baixa longo + candle de alta pequeno fechando perto da minima do 1o",
+          "sinal": "continuidade_baixa_fraca"
+        },
+        {
+          "nome": "Morning Doji Star",
+          "n_candles": 3,
+          "formacao": "Estrela da Manha com o candle do meio sendo especificamente um doji",
+          "sinal": "reversao_alta",
+          "obs": "Mais forte que Estrela da Manha comum"
+        },
+        {
+          "nome": "Bullish Kicker",
+          "n_candles": 2,
+          "formacao": "Candle de baixa + gap + candle de alta que abre acima do fechamento anterior e nunca preenche o gap",
+          "sinal": "reversao_alta"
+        },
+        {
+          "nome": "Bearish Kicker",
+          "n_candles": 2,
+          "formacao": "Espelho do Bullish Kicker",
+          "sinal": "reversao_baixa"
+        }
+      ],
+      "confirmacoes_de_padroes_ja_citados": [
+        {
+          "nome": "Mat Hold",
+          "formacao": "Variante do Rising Three Methods com pequeno gap de alta antes das correcoes"
+        },
+        {
+          "nome": "Upside Tasuki Gap",
+          "formacao": "2 candles de alta com gap + candle de baixa que abre dentro do 2o corpo mas nao fecha o gap"
+        }
+      ],
+      "distincao_doji": {
+        "doji_comum": "abertura aprox fechamento, sombras curtas dos 2 lados",
+        "doji_perna_longa": "abertura aprox fechamento, sombras LONGAS dos 2 lados - indecisao mais extrema",
+        "nuance_contexto": "Doji no meio de tendencia = pausa/continuacao; no fim de movimento esticado = mais chance de reversao"
+      }
+    },
+    {
+      "modulo": "67",
+      "titulo": "Terminologia Avançada de Al Brooks (Price Action)",
+      "fonte": "imagem_educacional_brookstradingcourse_brookspriceaction",
+      "conceitos": [
+        {
+          "nome": "Always-In (Direcao Presumida)",
+          "descricao": "Assumir sempre uma direcao vigente do mercado ate evidencia clara do contrario. Em canal, reversoes menores sao mais comuns que rompimentos verdadeiros"
+        },
+        {
+          "nome": "BO Test + Body Gap",
+          "descricao": "Apos rompimento, preco testa o ponto exato. Body gap (corpos nao se sobrepoem, nao so sombras) = teste mais forte/confiavel"
+        },
+        {
+          "nome": "Magnet",
+          "descricao": "Nivel tecnico (MM, canal, topo/fundo anterior) que o preco tende a ser atraido de volta mesmo apos se afastar"
+        },
+        {
+          "nome": "MTR (Major Trend Reversal)",
+          "descricao": "Reversao de tendencia de grande magnitude. LL MTR = Lower Low Major Trend Reversal"
+        },
+        {
+          "nome": "Expanding Triangle como variacao de LL MTR",
+          "descricao": "Fundo em triangulo expansivo no fim de tendencia de baixa e tratado como sempre tambem uma reversao maior"
+        },
+        {
+          "nome": "Final Flag (Bull/Bear)",
+          "descricao": "Ultima bandeira/lateralizacao antes do fim de uma tendencia - lateralizacao muito estreita ocorrendo tarde no movimento"
+        },
+        {
+          "nome": "Signal Bar",
+          "descricao": "Candle especifico cujo rompimento dispara a entrada - equivale ao 'candle sinal' do Modulo 10.8"
+        },
+        {
+          "nome": "Failure Test",
+          "descricao": "Candle que tenta romper um nivel e falha, fechando do lado errado - reforca conceito de armadilha (Modulo 33) com nome proprio"
+        },
+        {
+          "nome": "Regra de confirmacao 2-3 candles",
+          "descricao": "Esperar 2o ou 3o candle consecutivo fechando na direcao do sinal aumenta probabilidade, em vez de agir no 1o"
+        }
+      ],
+      "conexao": "Mesmo conjunto de ideias dos Modulos 6/33/34, com vocabulario especifico de Brooks (Modulo 29) muito usado em material em ingles"
+    },
+    {
+      "modulo": "68",
+      "titulo": "Síntese Cruzada: Quando Frameworks Diferentes Descrevem o Mesmo Fenômeno",
+      "fonte": "analise_propria_cruzando_modulos_existentes",
+      "problema_que_resolve": "67 modulos incorporaram vocabulario de escolas diferentes (Wyckoff, Nison/Bulkowski, ICT/SMC, Al Brooks) que as vezes descrevem o MESMO comportamento com nomes diferentes",
+      "equivalencia_falha_de_continuacao": [
+        {
+          "framework": "Wyckoff (1910-1930)",
+          "nome": "LPS - Last Point of Support",
+          "modulo": "37"
+        },
+        {
+          "framework": "ICT/SMC (2010s)",
+          "nome": "Liquidity Sweep / SFP",
+          "modulo": "32/39"
+        },
+        {
+          "framework": "Al Brooks (2000s-2010s)",
+          "nome": "Failure Test / LL MTR",
+          "modulo": "67"
+        }
+      ],
+      "insight_pratico": "Se uma leitura futura citar mais de um desses nomes para o mesmo evento, NAO sao hipoteses concorrentes que aumentam confianca - e o mesmo tipo de leitura com apelidos diferentes",
+      "licao_pesquisa_quantitativa": "Grafico de otimizacao de hiperparametro (RL, paper nao identificado) mostrou Sharpe Ratio subindo ate janela=30 depois estagnando ate janela=50 - reforca com metodo diferente (ML) o mesmo principio do Modulo 41/64: existe ponto otimo de quantidade de historico, sofisticacao de modelo nao substitui essa restricao",
+      "estudo_de_caso_real": "E-mini S&P 500 (mai-ago/2025): 3 recuos consecutivos ate a media movel em tendencia de alta, cada um seguido de continuacao - ilustracao pratica real do Modulo 9/27 (pullback) funcionando em sequencia"
+    },
+    {
+      "modulo": "69",
+      "titulo": "Setups H1/H2/L1/L2 (Al Brooks) — Verificado no Glossário Oficial",
+      "fonte": "verificado_brookstradingcourse_forum_oficial",
+      "definicoes": {
+        "H1": "Primeira barra que faz nova maxima apos recuo em tendencia de alta - setup de compra mas o mais fraco dos dois",
+        "H2": "Se H1 falhar, proxima barra cuja maxima supera a anterior - segunda tentativa, mais confirmacao. Citacao do glossario Brooks: 'H2s sao os mais seguros para iniciantes comprarem'",
+        "H3_H4": "Terceira e quarta ocorrencias do mesmo tipo",
+        "L1_L2_L3_L4": "Espelho exato de H1-H4 para tendencias de baixa"
+      },
+      "regra_pratica": "Toda Estrela da Manha/Fundo Duplo e um H2; todo Topo Duplo e um L2 - padroes classicos vistos por outro angulo",
+      "filtro_iniciante": "EMA de 20 periodos; nas ultimas 15 barras, no maximo 1 fechamento abaixo da EMA aumenta probabilidade de sucesso do H2",
+      "conexao": "Formalizacao mais detalhada do Modulo 25 (Setup MM9) e Modulo 27 (Pullback) - Brooks numera explicitamente qual tentativa de recuo esta sendo operada"
+    },
+    {
+      "modulo": "70",
+      "titulo": "Measured Move, Micro Channel e Sinais de Exaustão — Verificado",
+      "fonte": "verificado_brookstradingcourse_forum_oficial",
+      "conceitos": [
+        {
+          "nome": "Measured Move (MM)",
+          "descricao": "Mede tamanho do movimento (perna 1) e projeta mesma distancia a partir da retomada (perna 2)",
+          "estatisticas_verificadas": [
+            "~60% de chance de MM completo apos rompimento significativo",
+            "~80% dos rompimentos falham dentro de 5 barras"
+          ]
+        },
+        {
+          "nome": "Micro Channel",
+          "descricao": "Sequencia incomum de muitas barras seguidas (ex: 17) sem recuo real - insustentavel, tende a terminar em climax"
+        },
+        {
+          "nome": "STC/BTC (Sell/Buy The Close)",
+          "descricao": "Cada abertura igual ou acima do fechamento anterior (BTC) - mesma logica do AIL (Always In Long, variante do Always-In do Modulo 67)"
+        },
+        {
+          "nome": "Sell Vacuum",
+          "descricao": "Declinio rapido com pouca resistencia que testa minima relevante anterior antes de reverter"
+        },
+        {
+          "nome": "Measuring Gap",
+          "descricao": "Gap especifico que ajuda a definir onde o Measured Move deveria terminar - vira referencia de medicao"
+        }
+      ]
+    },
+    {
+      "modulo": "71",
+      "titulo": "Cadeia de Reversão HH MTR → LH MTR e Regras de Dia de Lateralização",
+      "fonte": "imagem_educacional_brookstradingcourse",
+      "conceitos": [
+        {
+          "nome": "HH MTR -> LH MTR",
+          "descricao": "Reversao no topo (maxima mais alta que falha) frequentemente leva a uma segunda reversao (LH MTR) em seguida - reversoes maiores vem em cadeia de 2 etapas, geralmente com rompimento de cunha e/ou linha de pescoco de OCO"
+        },
+        {
+          "nome": "TR Day - Abertura como Ima",
+          "descricao": "Em dias de lateralizacao, a abertura funciona como ima durante todo o pregao, principalmente no terco final do dia"
+        },
+        {
+          "nome": "Heuristica 6 dias consecutivos",
+          "descricao": "6 dias consecutivos de baixa no grafico diario e tratado como climatico - aumenta probabilidade de fechamento acima da abertura no dia seguinte"
+        },
+        {
+          "nome": "2o Sinal em Lateralizacao",
+          "descricao": "Dentro de trading range, o segundo sinal de compra/venda numa reversao tende a ter mais probabilidade de sucesso que o primeiro"
+        },
+        {
+          "nome": "Opening Reversal",
+          "descricao": "Reversao que ocorre logo na abertura, frequentemente em formato de cunha"
+        }
+      ]
+    },
+    {
+      "modulo": "72",
+      "titulo": "Pedagogia: Como Iniciante vs. Experiente Leem o Mesmo Gráfico",
+      "fonte": "imagem_educacional_brookstradingcourse",
+      "comparacao": {
+        "iniciante_ve": "Por que a tendencia forte virou do nada? Isso nao e justo - reacao emocional a reversao que parece arbitraria",
+        "experiente_ve": "Topo em cunha parabolica + measured move completo + teste da maxima do dia anterior - 3 sinais tecnicos concretos que tornavam a reversao previsivel"
+      },
+      "licao": "A diferenca entre iniciante e experiente nao e ver coisas diferentes, e notar mais contexto no mesmo lugar - justifica o passo de confluencia do Protocolo de Aplicacao"
+    },
+    {
+      "modulo": "73",
+      "titulo": "Confirmação Terminológica (Nison) e Pesquisa Acadêmica Verificada",
+      "fonte": "imagem_educacional_arquive_org_preview_e_pesquisa_academica",
+      "terminologia_nison_confirmada": {
+        "shaven_head": "Candle sem sombra superior (corpo toca a maxima)",
+        "shaven_bottom": "Candle sem sombra inferior (corpo toca a minima)",
+        "nota": "Termos amplamente documentados em outras fontes alem do livro - tratados como terminologia padrao de mercado"
+      },
+      "nota_transparencia_nison": "2 paginas especificas (25-26) de previa/emprestimo controlado no archive.org foram usadas como qualquer imagem educacional pontual - nao muda a posicao de nao processar o resto do livro",
+      "pesquisa_academica_cnn_rl": {
+        "paper_verificado": "Brim & Flann (2022), 'Deep reinforcement learning stock market trading, utilizing a CNN with candlestick images', PLOS ONE, DOI 10.1371/journal.pone.0263181",
+        "resultado": "CNN dentro de DDQN, testada nas 30 maiores acoes do S&P 500, superou o indice entre jan-jun/2020",
+        "limitacao_honesta": "Nao foi possivel identificar o paper exato de origem das 3 imagens de arquitetura (nome 'MSF-DRL' nao encontrado) - mas o campo de pesquisa e real e verificavel, arquitetura e consistente com familia de metodos publicados",
+        "licao_para_projeto": "Confirma com pesquisa academica real que ler o formato visual do candle e reconhecido como fonte de sinal genuina o suficiente para pesquisa de ML dedicada"
+      }
+    }
+  ],
+  "links_nao_acessados_por_seguranca": [
+    "mybook.top/read/... - site de pirataria de e-book",
+    "global.buys.trade/... - padrao de spam/afiliado suspeito",
+    "Apple Books audiobook 'In the Crypt with a Candlestick' - sem relacao com o livro, link de afiliado quebrado",
+    "encyclopedia-of-chart-patterns...pdf enviado 2x pelo usuario - 1a vez pagina de erro, 2a vez arquivo real e completo (1035 paginas, Wiley 2005) - em nenhuma das duas foi extraido conteudo, por ser livro comercial protegido"
+  ],
+  "contagem_padroes": {
+    "total_ate_parte_10": "~69 padroes nomeados (39 anteriores + 30 desta rodada)",
+    "nota": "Numero de padroes conhecidos nao substitui confluencia, contexto e gestao de risco (ver Modulo 49)"
+  },
+  "lacunas": [
+    "Narração falada do instrutor (não transcrita - sem ferramenta de STT disponível)",
+    "Detalhes cobertos por webcam/cursor/popups em vários frames",
+    "Passo a passo operacional de editar ordens na plataforma",
+    "Detalhes finos do Setup I2, do 'Plano da Virada' e do item 11.5 Perfil de Risco",
+    "Numeração de módulo pode não bater exatamente entre os arquivos; ordem lógica/temática foi priorizada",
+    "Triângulo Descendente e Simétrico citados mas não detalhados nos frames amostrados",
+    "Módulos 13-20 são conhecimento geral de mercado pesquisado na internet (não específico da metodologia do curso) - em caso de conflito, priorizar módulos 1-12 (metodologia do curso)",
+    "Parte 4 (modulos 29-36) baseada em foruns publicos - opinioes/praticas individuais, nao estudos controlados, exceto Modulo 30 (Bulkowski, dados empiricos reais mas de mercados especificos)",
+    "Nenhum livro do Modulo 29 foi lido na integra - conteudo bibliografico reconstruido de resenhas e paginas de catalogo oficiais",
+    "Modulos 37 (Wyckoff) e 39 (ICT/SMC) sao frameworks discricionarios sem validacao estatistica publica independente - diferente do Modulo 30 (Bulkowski, teste empirico real)",
+    "Modulo 40 (prop trading) reflete cenario de setembro/2026 - setor regulatorio em mudanca rapida, conferir regras atualizadas de cada firma antes de decidir",
+    "Modulos 42-45 (Kelly, Risco de Ruina, R-Multiples) dependem de dados reais e honestos da propria operacao (50-100+ operacoes registradas) - aplicados com taxa de acerto estimada 'de achismo', dao falsa precisao matematica",
+    "Modulo 48 (margem B3) e dado regulatorio verificado em fonte oficial na data desta pesquisa (12/09/2026) - valores mudam por revisao periodica da B3, sempre reconfirmar antes de operar",
+    "Modulo 49 (evidencia academica) usa estudos com metodologias e mercados diferentes entre si - nao deve ser lido como veredito unico a favor ou contra os padroes, e sim como retrato da divergencia real de resultados",
+    "Nao encontrada fonte verificada de dominio publico (ex: Internet Archive) para o texto integral de Studies in Tape Reading (Modulo 53) - apenas reimpressoes comerciais",
+    "Modulo 50 (regra PDT) documenta mudanca aprovada em abril/2026 com efeito a partir de junho/2026 - periodo de transicao de corretoras pode se estender ate 2027, confirmar status atual diretamente com a corretora",
+    "Por decisao deliberada, a base nao contem manchetes/eventos noticiosos especificos e datados - apenas o framework estrutural de como noticia vira movimento de candle. Para saber o que esta acontecendo agora, e necessario pesquisar em tempo real",
+    "Politica adotada: thepatternsite.com (fonte do Modulo 30) tem aviso do autor pedindo que o conteudo nao seja usado para treinar IA - o que ja estava documentado foi mantido (citacao com atribuicao), mas nao sera extraido conteudo novo desse site daqui em diante",
+    "PDF 'Encyclopedia of Chart Patterns' enviado pelo usuario continha apenas pagina de erro de site terceiro (nao o livro) - nada foi incorporado; mesmo funcionando, nao seria processado por ser livro comercial protegido",
+    "Contagem honesta: ~69 padroes nomeados formalmente ate a Parte 10 - bom progresso rumo a 100, mas quantidade de padroes conhecidos nao substitui confluencia/contexto/gestao de risco (Modulo 49)",
+    "Padroes do Modulo 61 (Ladder Bottom, Tri-Star, Advance Block) tem menos padronizacao entre fontes que os padroes classicos Nison/Bulkowski - descritos com a definicao mais comum encontrada",
+    "Modulo 64 (backtest real) usa apenas 30 pregoes de um proxy cambial - prova de conceito de metodologia, nao conclusao sobre eficacia de padrao. Script pipeline_backtest_candles.py salvo para reuso com serie maior/ativo real (WIN/WDO)",
+    "Os 3 classicos de dominio publico do Modulo 65 (Lefevre, Wyckoff, Nelson) foram sintetizados a partir do que e amplamente documentado sobre seu conteudo, nao uma leitura integral capitulo a capitulo. Status de dominio publico foi verificado antes de qualquer sintese",
+    "Comprovante bancario Pix com dados pessoais reais foi excluido - nao processado nem armazenado",
+    "PDF completo do livro do Nison (Japanese Candlestick Charting Techniques, 2a ed, confirmado real via Internet Archive, 10MB) foi excluido - livro comercial protegido, nao lido nem extraido",
+    "Duas imagens (Modulo 73) eram screenshots de 2 paginas especificas de previa do livro do Nison no archive.org - usadas pontualmente, sem mudar posicao de nao processar o resto da obra",
+    "Nao foi possivel identificar o paper academico exato de origem das 3 imagens de rede neural (Modulo 73) - nome MSF-DRL nao encontrado em nenhuma busca; campo de pesquisa confirmado real via paper equivalente publicado"
+  ],
+  "ferramentas_visuais_complementares": {
+    "cheatsheet_price_action.html": "Painel de consulta rapida: protocolo de 9 passos + tabela de padroes filtravel + formulas de risco",
+    "atlas_visual_padroes.html": "24 padroes de candle desenhados em SVG gerado por codigo a partir das proporcoes OHLC reais definidas nos modulos 3/13/31 (nao sao ilustracoes genericas)"
+  }
+}
