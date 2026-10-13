@@ -10,7 +10,7 @@ import traceback
 # KRONOS QUANT CORE API // MOTOR BAYESIANO E L2
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="4.1.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="4.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,7 +27,7 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.1.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.2.0"}
 
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
@@ -60,8 +60,8 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
 
 @app.post("/api/oracle")
 async def process_quant_analysis(req: QuantRequest):
-    # O TRUQUE MÁGICO: A nuvem agora usa a Bybit para não ser bloqueada!
-    exchange = ccxt_async.bybit({'enableRateLimit': True}) 
+    # A SOLUÇÃO: Usar a filial americana da Binance para IPs dos Estados Unidos (Render)
+    exchange = ccxt_async.binanceus({'enableRateLimit': True}) 
     try:
         bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=100)
         await exchange.close()
@@ -143,7 +143,6 @@ async def process_quant_analysis(req: QuantRequest):
             }
         }
     except Exception as e:
-        # AGORA SE FALHAR, ELE EXPLICA PORQUÊ NOS LOGS!
         error_msg = f"ERRO CRÍTICO NO ORÁCULO: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
         if hasattr(exchange, 'close'):
