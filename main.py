@@ -4,14 +4,14 @@ from pydantic import BaseModel
 import ccxt.async_support as ccxt_async
 import pandas as pd
 import numpy as np
+import traceback
 
 # ==============================================================================
 # KRONOS QUANT CORE API // MOTOR BAYESIANO E L2
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="4.0.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="4.1.0")
 
-# Permite a comunicação entre o seu PC e o Render
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,9 +27,8 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.0.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.1.0"}
 
-# --- MATEMÁTICA AVANÇADA ---
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
@@ -59,18 +58,16 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
     l2_norm = np.linalg.norm(diff_vector)
     return float(l2_norm / np.mean(close_series.tail(10).values))
 
-# --- A ROTA QUE O SEU BOTÃO CHAMA ---
 @app.post("/api/oracle")
 async def process_quant_analysis(req: QuantRequest):
-    exchange = ccxt_async.binance({'enableRateLimit': True})
+    # O TRUQUE MÁGICO: A nuvem agora usa a Bybit para não ser bloqueada!
+    exchange = ccxt_async.bybit({'enableRateLimit': True}) 
     try:
-        # Puxa os dados da corretora
         bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=100)
         await exchange.close()
         
         df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
         
-        # Faz os cálculos
         df['mme5'] = df['close'].ewm(span=5, adjust=False).mean()
         df['mme20'] = df['close'].ewm(span=20, adjust=False).mean()
         df['rsi'] = calculate_rsi(df['close'], 14)
@@ -90,7 +87,6 @@ async def process_quant_analysis(req: QuantRequest):
         dynamic_stop = current_price - (current_atr * 1.5) 
         dynamic_target = current_price + (current_atr * 3.0) 
         
-        # --- MOTOR BAYESIANO (SISTEMA DE PONTOS) ---
         confluence_score = 0
         signals = []
         
@@ -113,7 +109,6 @@ async def process_quant_analysis(req: QuantRequest):
             confluence_score += 40
             signals.append("Fuga Estrutural")
 
-        # Filtro de Ruído L2
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
         is_stable = l2_div < 0.015 
         
@@ -121,7 +116,6 @@ async def process_quant_analysis(req: QuantRequest):
             confluence_score *= 0.5 
             signals.append("Risco Whipsaw (Ruído L2)")
 
-        # Veredito Final
         if confluence_score >= 80:
             verdict = "COMPRA FORTE"
         elif confluence_score >= 60:
@@ -129,7 +123,6 @@ async def process_quant_analysis(req: QuantRequest):
         else:
             verdict = "MERCADO NEUTRO"
 
-        # Devolve o JSON limpo para o seu Botão
         return {
             "telemetry": {
                 "symbol": req.symbol,
@@ -150,6 +143,9 @@ async def process_quant_analysis(req: QuantRequest):
             }
         }
     except Exception as e:
+        # AGORA SE FALHAR, ELE EXPLICA PORQUÊ NOS LOGS!
+        error_msg = f"ERRO CRÍTICO NO ORÁCULO: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
         if hasattr(exchange, 'close'):
             await exchange.close()
-        raise HTTPException(status_code=500, detail="Erro interno no servidor quantitativo.")
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
