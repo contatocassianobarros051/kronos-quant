@@ -4,22 +4,14 @@ from pydantic import BaseModel
 import ccxt.async_support as ccxt_async
 import pandas as pd
 import numpy as np
-import asyncio
-import logging
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V4.0 - INSTITUTIONAL GRADE ENGINE
+# KRONOS QUANT CORE API // MOTOR BAYESIANO E L2
 # ==============================================================================
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - KRONOS ENGINE - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+app = FastAPI(title="KRONOS QUANT PRO", version="4.0.0")
 
-app = FastAPI(
-    title="KRONOS QUANT PRO",
-    description="Motor de Inferência Bayesiana, Geometria Vetorial e Filtragem L2",
-    version="4.0.0"
-)
-
+# Permite a comunicação entre o seu PC e o Render
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -35,16 +27,9 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {
-        "status": "KRONOS QUANT CORE ONLINE",
-        "version": "4.0.0",
-        "message": "Servidor Institucional Ativo. Motor Bayesiano e L2 a aguardar comunicacao do Terminal Web."
-    }
+    return {"status": "KRONOS QUANT CORE ONLINE", "version": "4.0.0"}
 
-# ==============================================================================
-# MÓDULOS DE MATEMÁTICA FINANCEIRA AVANÇADA
-# ==============================================================================
-
+# --- MATEMÁTICA AVANÇADA ---
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
@@ -63,13 +48,10 @@ def calculate_atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
 def detect_structural_pivots(df: pd.DataFrame, window: int = 5):
     df['is_high_pivot'] = df['high'] == df['high'].rolling(window=window, center=True).max()
     df['is_low_pivot'] = df['low'] == df['low'].rolling(window=window, center=True).min()
-    
     recent_highs = df[df['is_high_pivot']]['high'].values
     recent_lows = df[df['is_low_pivot']]['low'].values
-    
     highest_res = np.max(recent_highs) if len(recent_highs) > 0 else df['high'].max()
     lowest_sup = np.min(recent_lows) if len(recent_lows) > 0 else df['low'].min()
-    
     return float(highest_res), float(lowest_sup)
 
 def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> float:
@@ -77,21 +59,18 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
     l2_norm = np.linalg.norm(diff_vector)
     return float(l2_norm / np.mean(close_series.tail(10).values))
 
-# ==============================================================================
-# ROTA PRINCIPAL DO ORÁCULO
-# ==============================================================================
-
+# --- A ROTA QUE O SEU BOTÃO CHAMA ---
 @app.post("/api/oracle")
 async def process_quant_analysis(req: QuantRequest):
     exchange = ccxt_async.binance({'enableRateLimit': True})
-    
     try:
-        logger.info(f"Iniciando cálculo vetorial para {req.symbol} em {req.timeframe}")
+        # Puxa os dados da corretora
         bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=100)
-        await exchange.close() 
+        await exchange.close()
         
         df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
         
+        # Faz os cálculos
         df['mme5'] = df['close'].ewm(span=5, adjust=False).mean()
         df['mme20'] = df['close'].ewm(span=20, adjust=False).mean()
         df['rsi'] = calculate_rsi(df['close'], 14)
@@ -111,50 +90,46 @@ async def process_quant_analysis(req: QuantRequest):
         dynamic_stop = current_price - (current_atr * 1.5) 
         dynamic_target = current_price + (current_atr * 3.0) 
         
+        # --- MOTOR BAYESIANO (SISTEMA DE PONTOS) ---
         confluence_score = 0
         signals = []
         
         if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']:
             confluence_score += 25
-            signals.append("MME5 > MME20 (Momentum de Alta)")
+            signals.append("MME5 > MME20")
             
         if current_vol > (vol_sma * 1.5):
             confluence_score += 20
-            signals.append("Choque de Volume Institucional")
+            signals.append("Volume Alto")
             
         if 55 <= current_rsi <= 75:
             confluence_score += 15
-            signals.append("RSI Saudável (Tendência Forte)")
+            signals.append("RSI Saudável")
         elif current_rsi > 75:
             confluence_score -= 10
-            signals.append("RSI Sobrecomprado (Risco de Retracao)")
+            signals.append("RSI Exausto")
             
         if current_price > breakout_threshold:
             confluence_score += 40
-            signals.append("Forte Fuga Estrutural (Breakout)")
+            signals.append("Fuga Estrutural")
 
+        # Filtro de Ruído L2
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
         is_stable = l2_div < 0.015 
         
         if not is_stable:
             confluence_score *= 0.5 
-            signals.append("ALERTA: Alta Divergência L2 (Risco de Whipsaw)")
+            signals.append("Risco Whipsaw (Ruído L2)")
 
-        risk_per_coin = current_price - dynamic_stop
-        if risk_per_coin > 0:
-            suggested_position_size_usd = (req.capital_usd * 0.02) / (risk_per_coin / current_price)
-        else:
-            suggested_position_size_usd = 0.0
-
+        # Veredito Final
         if confluence_score >= 80:
-            verdict = "COMPRA AGRESSIVA (STRONG LONG)"
+            verdict = "COMPRA FORTE"
         elif confluence_score >= 60:
-            verdict = "COMPRA MODERADA (LONG)"
+            verdict = "COMPRA MODERADA"
         else:
-            verdict = "AGUARDAR (NEUTRAL/FLAT)"
+            verdict = "MERCADO NEUTRO"
 
-        logger.info(f"Análise concluída. Score: {confluence_score}%. Veredito: {verdict}")
-
+        # Devolve o JSON limpo para o seu Botão
         return {
             "telemetry": {
                 "symbol": req.symbol,
@@ -165,9 +140,6 @@ async def process_quant_analysis(req: QuantRequest):
                 "market_state": "ESTÁVEL" if is_stable else "CAÓTICO"
             },
             "tactical_coordinates": {
-                "resistance_fractal": round(res_zone, 4),
-                "support_fractal": round(sup_zone, 4),
-                "dynamic_entry": round(breakout_threshold, 4),
                 "atr_stop_loss": round(dynamic_stop, 4),
                 "atr_take_profit": round(dynamic_target, 4)
             },
@@ -175,13 +147,9 @@ async def process_quant_analysis(req: QuantRequest):
                 "confluence_score_pct": round(confluence_score, 2),
                 "active_signals": signals,
                 "final_verdict": verdict
-            },
-            "risk_management": {
-                "account_capital": req.capital_usd,
-                "suggested_position_usd": round(min(suggested_position_size_usd, req.capital_usd), 2)
             }
         }
-        
     except Exception as e:
-        logger.error(f"Falha Crítica no Motor: {str(e)}")
-        raise HTTPException(status_code=500, detail="Erro Interno no Processamento Quantitativo")
+        if hasattr(exchange, 'close'):
+            await exchange.close()
+        raise HTTPException(status_code=500, detail="Erro interno no servidor quantitativo.")
