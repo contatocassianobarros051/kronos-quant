@@ -534,3 +534,64 @@ def prior(rows, pattern, breakout, market="Bull"):
         if r["pattern"].lower() == pattern.lower() and r["breakout"] == breakout and r["market"] == market:
             return r
     return None
+def bump_and_run_reversal(H, L, C, p: Params = P, is_bottom=False):
+    """
+    Detector Matemático de Bump-and-Run Reversal (BARR)[cite: 153, 170, 171].
+    is_bottom=True -> Procura BARR Bottom (Call/Alta)
+    is_bottom=False -> Procura BARR Top (Put/Queda)
+    """
+    out = []
+    n = len(C)
+    if n < 60: return out # Requer histórico longo para formar a 'panela/montanha'
+    
+    # Simula a inversão geométrica da matriz para procurar fundos usando a lógica de topos
+    if is_bottom:
+        H, L = -L, -H
+        
+    piv = zigzag(H, L, p.zigzag_theta)
+    if len(piv) < 5: return out
+    
+    # Percorre os pivos para encontrar a base (Lead-in) e o Bump
+    for k in range(len(piv) - 4):
+        # Seleciona 4 pivos consecutivos do mesmo lado (Topos para BARR Top)
+        highs = [x for x in piv[k:k+8] if x[2] == +1]
+        if len(highs) < 3: continue
+        
+        i1, v1 = highs[0][0], highs[0][1]
+        i2, v2 = highs[1][0], highs[1][1]
+        i3, v3 = highs[2][0], highs[2][1]
+        
+        # 1. Regra da Fase Lead-In: Deve subir (ou descer para Bottoms)
+        a_lead, b_lead = linfit([i1, i2], [v1, v2])
+        if a_lead <= 0: continue # Linha de base tem de subir para BARR Top
+        
+        # Calcula a altura da Lead-In (Max distância vertical no 1º quarto)
+        quarter_idx = i1 + (i2 - i1)
+        lead_in_prices = H[i1:quarter_idx+1]
+        if len(lead_in_prices) == 0: continue
+        
+        trend_vals = a_lead * np.arange(i1, quarter_idx+1) + b_lead
+        lead_in_height = np.max(lead_in_prices - trend_vals)
+        if lead_in_height <= 0: continue
+        
+        # 2. Regra do Bump: Tem de ser pelo menos 2x a altura do Lead-In
+        bump_prices = H[i2:i3+1]
+        bump_trend_vals = a_lead * np.arange(i2, i3+1) + b_lead
+        bump_height = np.max(bump_prices - bump_trend_vals)
+        
+        if bump_height < (2.0 * lead_in_height): continue # Validação da Regra de Bulkowski
+        
+        # 3. Rompimento: Preço atual fechou rompendo a linha de base original?
+        current_trend_val = a_lead * (n - 1) + b_lead
+        is_breakout = C[-1] < current_trend_val
+        
+        if is_breakout:
+            target = C[-1] - lead_in_height if not is_bottom else -(C[-1] + lead_in_height)
+            out.append({
+                "pattern": "BARR_Bottom" if is_bottom else "BARR_Top",
+                "lead_in_slope": a_lead,
+                "bump_ratio": bump_height / lead_in_height,
+                "target": target
+            })
+            
+    return out
