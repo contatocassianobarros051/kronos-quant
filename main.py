@@ -8,17 +8,13 @@ import traceback
 import os
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V5.0 (INTEGRAÇÃO DE CONHECIMENTO EXTERNO)
+# KRONOS QUANT CORE API // V6.0 (OMNIDIRECIONAL LTA/LTB + CONHECIMENTO EXTERNO)
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="5.0.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="6.0.0")
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
 )
 
 class QuantRequest(BaseModel):
@@ -28,9 +24,8 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE - LENDO DADOS EXTERNOS", "version": "5.0.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE - MODO OMNIDIRECIONAL", "version": "6.0.0"}
 
-# --- MATEMÁTICA BASE DO KRONOS ---
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
     gain = (delta.where(delta > 0, 0)).ewm(alpha=1/period, adjust=False).mean()
@@ -46,15 +41,6 @@ def calculate_atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
     true_range = np.max(ranges, axis=1)
     return true_range.ewm(alpha=1/period, adjust=False).mean()
 
-def detect_structural_pivots(df: pd.DataFrame, window: int = 5):
-    df['is_high_pivot'] = df['high'] == df['high'].rolling(window=window, center=True).max()
-    df['is_low_pivot'] = df['low'] == df['low'].rolling(window=window, center=True).min()
-    recent_highs = df[df['is_high_pivot']]['high'].values
-    recent_lows = df[df['is_low_pivot']]['low'].values
-    highest_res = np.max(recent_highs) if len(recent_highs) > 0 else df['high'].max()
-    lowest_sup = np.min(recent_lows) if len(recent_lows) > 0 else df['low'].min()
-    return float(highest_res), float(lowest_sup)
-
 def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> float:
     diff_vector = close_series.tail(10).values - ma_series.tail(10).values
     l2_norm = np.linalg.norm(diff_vector)
@@ -64,18 +50,17 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
 async def process_quant_analysis(req: QuantRequest):
     exchange = ccxt_async.binanceus({'enableRateLimit': True}) 
     try:
-        bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=200) # Mais limite para padrões
+        bars = await exchange.fetch_ohlcv(req.symbol, req.timeframe, limit=200)
         await exchange.close()
         
         df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
         
         df['mme5'] = df['close'].ewm(span=5, adjust=False).mean()
         df['mme20'] = df['close'].ewm(span=20, adjust=False).mean()
+        df['mme100'] = df['close'].ewm(span=100, adjust=False).mean() # O Cérebro da Tendência
         df['rsi'] = calculate_rsi(df['close'], 14)
         df['atr'] = calculate_atr(df, 14)
         df['volume_sma'] = df['volume'].rolling(window=20).mean()
-        
-        res_zone, sup_zone = detect_structural_pivots(df, window=5)
         
         last_idx = df.index[-1]
         current_price = float(df.at[last_idx, 'close'])
@@ -84,98 +69,94 @@ async def process_quant_analysis(req: QuantRequest):
         current_vol = float(df.at[last_idx, 'volume'])
         vol_sma = float(df.at[last_idx, 'volume_sma'])
         
-        breakout_threshold = res_zone + (current_atr * 0.2) 
-        dynamic_stop = current_price - (current_atr * 1.5) 
-        dynamic_target = current_price + (current_atr * 3.0) 
+        # BÚSSOLA MESTRA NO BACKEND
+        is_lta = current_price > df.at[last_idx, 'mme100']
+        
+        dynamic_stop = current_price - (current_atr * 1.5) if is_lta else current_price + (current_atr * 1.5)
+        dynamic_target = current_price + (current_atr * 3.0) if is_lta else current_price - (current_atr * 3.0)
         
         confluence_score = 0
         signals = []
         
-        # 1. ANÁLISE TÉCNICA BASE (KRONOS)
-        if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']:
-            confluence_score += 15
-            signals.append("MME5 > MME20")
-            
-        if current_vol > (vol_sma * 1.5):
-            confluence_score += 15
-            signals.append("Volume Institucional")
-            
-        if 55 <= current_rsi <= 75:
-            confluence_score += 10
-            signals.append("RSI Saudável")
-        elif current_rsi > 75:
-            confluence_score -= 15
-            signals.append("RSI Exausto")
-            
-        if current_price > breakout_threshold:
-            confluence_score += 20
-            signals.append("Fuga Estrutural Confirmada")
+        # =====================================================================
+        # 1. MOTOR DIRECIONAL (LTA vs LTB)
+        # =====================================================================
+        if is_lta:
+            # PONTUAÇÃO PARA CALL (COMPRAS)
+            if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias de Alta Alinhadas")
+            if 40 <= current_rsi <= 70: confluence_score += 10; signals.append("RSI Fértil para Alta")
+            elif current_rsi > 75: confluence_score -= 15; signals.append("RSI Exausto (Perigo Alto)")
+        else:
+            # PONTUAÇÃO PARA PUT (VENDAS)
+            if df.at[last_idx, 'mme5'] < df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias de Baixa Alinhadas")
+            if 30 <= current_rsi <= 60: confluence_score += 10; signals.append("RSI Fértil para Queda")
+            elif current_rsi < 25: confluence_score -= 15; signals.append("RSI Muito Baixo (Risco de Respiro)")
 
-        # 2. INTEGRAÇÃO DA BASE DE CONHECIMENTO (ARQUIVOS DO USUÁRIO)
+        if current_vol > (vol_sma * 1.5): confluence_score += 15; signals.append("Injeção de Volume Institucional")
+
+        # =====================================================================
+        # 2. INTEGRAÇÃO DA SABEDORIA EXTERNA (Os seus Ficheiros)
+        # =====================================================================
         knowledge_applied = False
-        
-        # Tentar usar as fórmulas de chart_patterns_math.py e estatísticas do CSV
         try:
-            # Tentar importar o seu ficheiro matematico
             if os.path.exists("chart_patterns_math.py"):
                 import chart_patterns_math as cpm
-                
-                # Extrair arrays numpy puros para as funções do seu ficheiro
-                H = df['high'].values
-                L = df['low'].values
-                C = df['close'].values
-                
-                # 1. Procurar Topo em Tubo (Pipe Top) - Um dos seus padrões
-                pipes = cpm.pipe_top(df['open'].values, H, L, C, lookback=20)
-                if pipes:
-                    confluence_score -= 20 # Tubo no topo indica queda
-                    signals.append("Padrão de Queda: Tubo Topo (Pipe Top)")
-                    knowledge_applied = True
-                
-                # 2. Procurar Duplo Fundo (Double Bottom) - Padrão de alta forte[cite: 13, 14]
-                dbottoms = cpm.double_bottoms(H, L, C)
-                if dbottoms:
-                    confluence_score += 25
-                    signals.append(f"Fundo Duplo Encontrado ({dbottoms[-1]['kind']})")
-                    knowledge_applied = True
+                H, L, C, O = df['high'].values, df['low'].values, df['close'].values, df['open'].values
+                found_pattern = False
+                pattern_name_for_csv = None
+
+                if is_lta:
+                    # CAÇA A FUNDOS (CALL)
+                    db = cpm.double_bottoms(H, L, C)
+                    hs = cpm.head_shoulders_bottoms(H, L, C)
+                    if db:
+                        confluence_score += 25; signals.append(f"Fundo Duplo ({db[-1]['kind']})"); found_pattern = True; pattern_name_for_csv = "Double Bottom"
+                    if hs:
+                        confluence_score += 25; signals.append("Cabeça e Ombros Invertido (Fundo)"); found_pattern = True
+                else:
+                    # CAÇA A TOPOS (PUT) - Usando o poder do seu top_version()!
+                    dt = cpm.top_version(cpm.double_bottoms, H, L, C)
+                    pt = cpm.pipe_top(O, H, L, C)
+                    if dt:
+                        confluence_score += 25; signals.append(f"Topo Duplo ({dt[-1]['kind']})"); found_pattern = True; pattern_name_for_csv = "Double Top"
+                    if pt:
+                        confluence_score += 15; signals.append("Tubo de Topo Detetado"); found_pattern = True
+
+                knowledge_applied = found_pattern
+
+                # CONSULTA À ESTATÍSTICA (CSV)
+                if found_pattern and pattern_name_for_csv and os.path.exists("pattern_stats.csv"):
+                    df_stats = pd.read_csv("pattern_stats.csv")
+                    # Se LTA, procura Bull/up. Se LTB, procura Bear/down.
+                    t_market = 'Bull' if is_lta else 'Bear'
+                    t_break = 'up' if is_lta else 'down'
                     
-                    # 3. Ligar os Padrões ao seu CSV de Estatísticas[cite: 13, 14]
-                    if os.path.exists("pattern_stats.csv"):
-                        try:
-                            df_stats = pd.read_csv("pattern_stats.csv")
-                            # Procurar as estatísticas para Duplo Fundo (Eve & Eve etc)[cite: 13, 14]
-                            # Simplificando a busca para qualquer fundo duplo[cite: 13, 14]
-                            stats_match = df_stats[df_stats['pattern'].str.contains('Double Bottom', case=False, na=False)]
-                            if not stats_match.empty:
-                                # Usar o mercado "Bull" e rompimento "up" como referência
-                                bull_stats = stats_match[(stats_match['market'] == 'Bull') & (stats_match['breakout'] == 'up')]
-                                if not bull_stats.empty:
-                                    win_chance = 100 - float(bull_stats.iloc[0]['break_even_failure_pct']) # Winrate aproximado
-                                    signals.append(f"Estatística CSV: ~{win_chance:.0f}% Acerto")
-                                    if win_chance > 80: confluence_score += 10
-                        except Exception as csv_e:
-                            print(f"Erro lendo CSV: {csv_e}")
-                            
-        except Exception as e:
-            print(f"Erro ao aplicar módulos de conhecimento externo: {e}")
-            
-        # 3. FILTRO FINAL DE RUÍDO
+                    stats_match = df_stats[df_stats['pattern'].str.contains(pattern_name_for_csv, case=False, na=False)]
+                    exact_stats = stats_match[(stats_match['market'] == t_market) & (stats_match['breakout'] == t_break)]
+                    
+                    if not exact_stats.empty:
+                        win_chance = 100 - float(exact_stats.iloc[0]['break_even_failure_pct'])
+                        signals.append(f"Backtest {t_market}: ~{win_chance:.0f}% Acerto")
+                        if win_chance > 70: confluence_score += 15
+
+        except Exception as e: print(f"Erro Base Conhecimento: {e}")
+
+        # =====================================================================
+        # 3. FILTRO FINAL
+        # =====================================================================
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
         is_stable = l2_div < 0.015 
-        
-        if not is_stable:
-            confluence_score *= 0.5 
-            signals.append("Risco Whipsaw (L2)")
+        if not is_stable: confluence_score *= 0.5; signals.append("Risco Whipsaw (Ruído L2 Alto)")
 
-        # Limitar o score a 100% e mínimo de 0%
         confluence_score = max(0.0, min(round(confluence_score, 2), 100.0))
-
+        
+        # VEREDITO ADAPTADO PARA DIREÇÃO
         if confluence_score >= 80:
-            verdict = "COMPRA INSTITUCIONAL"
+            verdict = "FORÇA TOTAL INSTITUCIONAL"
         elif confluence_score >= 60:
-            verdict = "COMPRA MODERADA"
+            verdict = "MOMENTUM MODERADO"
         else:
-            verdict = "MERCADO NEUTRO"
+            verdict = "AGUARDAR (SEM ENTRADA CLARA)"
 
         return {
             "telemetry": {
@@ -200,6 +181,5 @@ async def process_quant_analysis(req: QuantRequest):
     except Exception as e:
         error_msg = f"ERRO CRÍTICO NO ORÁCULO: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
-        if hasattr(exchange, 'close'):
-            await exchange.close()
+        if hasattr(exchange, 'close'): await exchange.close()
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
