@@ -8,10 +8,10 @@ import traceback
 import os
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V6.1 (CALIBRAÇÃO DAY TRADE & DEBUG DE ARQUIVOS)
+# KRONOS QUANT CORE API // V6.2 (FUSÃO DE MACRO & MICRO ESTRUTURA)
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="6.1.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="6.2.0")
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
@@ -24,7 +24,7 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE - MODO DAY TRADE", "version": "6.1.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE - LENDO MICRO ESTRUTURA", "version": "6.2.0"}
 
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
@@ -91,26 +91,44 @@ async def process_quant_analysis(req: QuantRequest):
         confluence_score = 0
         signals = []
         
-        # 1. MOTOR DIRECIONAL & PRICE ACTION LOCAL (Modo Day Trade)
+        # 1. MOTOR DIRECIONAL & PRICE ACTION LOCAL
         if is_lta:
             if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias Alta Alinhadas")
             if 40 <= current_rsi <= 70: confluence_score += 10
-            # Bonificação por Rompimento Local (Price Action)
-            if current_price > breakout_threshold_up: confluence_score += 20; signals.append("Fuga de Resistência Detectada")
+            if current_price > breakout_threshold_up: confluence_score += 20; signals.append("Fuga de Resistência")
         else:
             if df.at[last_idx, 'mme5'] < df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias Baixa Alinhadas")
             if 30 <= current_rsi <= 60: confluence_score += 10
-            # Bonificação por Rompimento Local (Price Action)
-            if current_price < breakout_threshold_down: confluence_score += 20; signals.append("Quebra de Suporte Detectada")
+            if current_price < breakout_threshold_down: confluence_score += 20; signals.append("Quebra de Suporte")
 
         if current_vol > (vol_sma * 1.5): confluence_score += 15; signals.append("Volume Institucional")
 
-        # 2. SABEDORIA EXTERNA (Os seus Ficheiros)
+        # 2. SABEDORIA EXTERNA (Micro e Macro Estrutura)
         knowledge_applied = False
+        H, L, C, O = df['high'].values, df['low'].values, df['close'].values, df['open'].values
+
+        # A. AÇÃO MICRO-ESTRUTURAL (NOVO MÓDULO DE VELAS JAPONESAS)
+        try:
+            if os.path.exists("candlestick_patterns.py"):
+                import candlestick_patterns as cdp
+                c_sigs, c_boost = cdp.detect_patterns(O, H, L, C)
+                
+                # Aplica os pontos dependendo da tendência da Bússola
+                if is_lta and c_boost > 0:  # Fortalece o Call
+                    confluence_score += c_boost
+                    signals.extend(c_sigs)
+                    knowledge_applied = True
+                elif not is_lta and c_boost < 0: # Fortalece o Put
+                    confluence_score += abs(c_boost)
+                    signals.extend(c_sigs)
+                    knowledge_applied = True
+        except Exception as e:
+            print(f"Erro Candlesticks: {e}")
+
+        # B. AÇÃO MACRO-ESTRUTURAL (PADRÕES INSTITUCIONAIS)
         try:
             if os.path.exists("chart_patterns_math.py"):
                 import chart_patterns_math as cpm
-                H, L, C, O = df['high'].values, df['low'].values, df['close'].values, df['open'].values
                 found_pattern = False
                 pattern_name_for_csv = None
 
@@ -129,7 +147,7 @@ async def process_quant_analysis(req: QuantRequest):
                     if pt:
                         confluence_score += 15; signals.append("Padrão: Tubo de Topo"); found_pattern = True
 
-                knowledge_applied = found_pattern
+                if found_pattern: knowledge_applied = True
 
                 if found_pattern and pattern_name_for_csv and os.path.exists("pattern_stats.csv"):
                     df_stats = pd.read_csv("pattern_stats.csv")
@@ -142,16 +160,13 @@ async def process_quant_analysis(req: QuantRequest):
                         win_chance = 100 - float(exact_stats.iloc[0]['break_even_failure_pct'])
                         signals.append(f"Backtest: ~{win_chance:.0f}% Acerto")
                         if win_chance > 70: confluence_score += 15
-
         except Exception as e:
-            # O ERRO APARECE NO SEU PAINEL SE ALGO ESTIVER MAL NO PYTHON!
             signals.append(f"ERRO DE ARQUIVO: {str(e)[:30]}")
-            print(f"Erro Base Conhecimento: {e}")
 
         # 3. FILTRO FINAL DE RUÍDO
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
         is_stable = l2_div < 0.015 
-        if not is_stable: confluence_score *= 0.5; signals.append("⚠️ Ruído L2 Alto (Score Reduzido)")
+        if not is_stable: confluence_score *= 0.5; signals.append("⚠️ Ruído L2 Alto")
 
         confluence_score = max(0.0, min(round(confluence_score, 2), 100.0))
         
@@ -180,7 +195,5 @@ async def process_quant_analysis(req: QuantRequest):
             }
         }
     except Exception as e:
-        error_msg = f"ERRO CRÍTICO NO ORÁCULO: {str(e)}\n{traceback.format_exc()}"
-        print(error_msg)
         if hasattr(exchange, 'close'): await exchange.close()
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
