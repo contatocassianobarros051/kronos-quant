@@ -5,13 +5,33 @@ import ccxt.async_support as ccxt_async
 import pandas as pd
 import numpy as np
 import traceback
-import os
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V6.3 (SMC, BALEIAS & STOP HUNTS)
+# IMPORTAÇÃO POR FORÇA BRUTA (Se os arquivos falharem, o erro vai para o Ecrã!)
 # ==============================================================================
+try:
+    import candlestick_patterns as cdp
+    HAS_CANDLES = True
+except Exception as e:
+    HAS_CANDLES = False
+    ERR_CANDLES = str(e)
 
-app = FastAPI(title="KRONOS QUANT PRO", version="6.3.0")
+try:
+    import whale_tracker as wt
+    HAS_WHALES = True
+except Exception as e:
+    HAS_WHALES = False
+    ERR_WHALES = str(e)
+
+try:
+    import chart_patterns_math as cpm
+    HAS_MATH = True
+except Exception as e:
+    HAS_MATH = False
+    ERR_MATH = str(e)
+
+
+app = FastAPI(title="KRONOS QUANT PRO", version="6.5.0")
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
@@ -24,7 +44,7 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE - RASTREANDO BALEIAS", "version": "6.3.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE - MODO FORÇA BRUTA", "version": "6.5.0"}
 
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
@@ -82,9 +102,6 @@ async def process_quant_analysis(req: QuantRequest):
         
         is_lta = current_price > df.at[last_idx, 'mme100']
         
-        breakout_threshold_up = res_zone + (current_atr * 0.2) 
-        breakout_threshold_down = sup_zone - (current_atr * 0.2) 
-        
         dynamic_stop = current_price - (current_atr * 1.5) if is_lta else current_price + (current_atr * 1.5)
         dynamic_target = current_price + (current_atr * 3.0) if is_lta else current_price - (current_atr * 3.0)
         
@@ -92,78 +109,91 @@ async def process_quant_analysis(req: QuantRequest):
         signals = []
         knowledge_applied = False
         
-        # 1. MOTOR DIRECIONAL & PRICE ACTION LOCAL
+        # 1. MOTOR DIRECIONAL & PRICE ACTION LOCAL (Maior Sensibilidade)
         if is_lta:
             if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias Alta Alinhadas")
             if 40 <= current_rsi <= 70: confluence_score += 10
-            if current_price > breakout_threshold_up: confluence_score += 20; signals.append("Fuga de Resistência")
+            if current_price >= res_zone: confluence_score += 20; signals.append("Fuga de Resistência Detectada")
         else:
             if df.at[last_idx, 'mme5'] < df.at[last_idx, 'mme20']: confluence_score += 15; signals.append("Médias Baixa Alinhadas")
             if 30 <= current_rsi <= 60: confluence_score += 10
-            if current_price < breakout_threshold_down: confluence_score += 20; signals.append("Quebra de Suporte")
+            if current_price <= sup_zone: confluence_score += 20; signals.append("Quebra de Suporte Detectada")
+
+        if current_vol > (vol_sma * 1.2): confluence_score += 15; signals.append("Volume Institucional Ativo")
 
         H, L, C, O = df['high'].values, df['low'].values, df['close'].values, df['open'].values
 
-        # 2A. AÇÃO MICRO-ESTRUTURAL (VELAS)
-        try:
-            if os.path.exists("candlestick_patterns.py"):
-                import candlestick_patterns as cdp
+        # 2A. MICRO-ESTRUTURA (VELAS)
+        if HAS_CANDLES:
+            try:
                 c_sigs, c_boost = cdp.detect_patterns(O, H, L, C)
                 if is_lta and c_boost > 0:
                     confluence_score += c_boost; signals.extend(c_sigs); knowledge_applied = True
                 elif not is_lta and c_boost < 0:
                     confluence_score += abs(c_boost); signals.extend(c_sigs); knowledge_applied = True
-        except Exception as e: print(f"Erro Candlesticks: {e}")
+            except Exception as e: signals.append(f"⚠️ Erro Lógica Velas: {str(e)[:30]}")
+        else:
+            signals.append(f"❌ Falta Ficheiro 'candlestick_patterns.py' ({ERR_CANDLES[:20]})")
 
-        # 2B. AÇÃO BALEIAS (SMART MONEY CONCEPTS) - NOVO!
-        try:
-            if os.path.exists("whale_tracker.py"):
-                import whale_tracker as wt
+        # 2B. BALEIAS (SMC)
+        if HAS_WHALES:
+            try:
                 w_sigs, w_boost = wt.detect_whale_activity(df)
                 if is_lta and w_boost > 0:
                     confluence_score += w_boost; signals.extend(w_sigs); knowledge_applied = True
                 elif not is_lta and w_boost < 0:
                     confluence_score += abs(w_boost); signals.extend(w_sigs); knowledge_applied = True
-        except Exception as e:
-            signals.append(f"ERRO BALEIAS: {str(e)[:30]}")
+            except Exception as e: signals.append(f"⚠️ Erro Lógica Baleias: {str(e)[:30]}")
+        else:
+            signals.append(f"❌ Falta Ficheiro 'whale_tracker.py' ({ERR_WHALES[:20]})")
 
-        # 2C. AÇÃO MACRO-ESTRUTURAL (BULKOWSKI)
-        try:
-            if os.path.exists("chart_patterns_math.py"):
-                import chart_patterns_math as cpm
+        # 2C. MACRO-ESTRUTURA (BULKOWSKI BARR)
+        if HAS_MATH:
+            try:
                 found_pattern = False
                 pattern_name_for_csv = None
 
                 if is_lta:
                     db = cpm.double_bottoms(H, L, C)
                     hs = cpm.head_shoulders_bottoms(H, L, C)
+                    barr = cpm.bump_and_run_reversal(H, L, C, is_bottom=True)
                     if db:
-                        confluence_score += 25; signals.append(f"Geometria: Fundo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Bottom"
-                    if hs:
+                        confluence_score += 25; signals.append("Geometria: Fundo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Bottom"
+                    elif hs:
                         confluence_score += 25; signals.append("Geometria: OCO Invertido"); found_pattern = True
+                    elif barr:
+                        confluence_score += 25; signals.append("Geometria: BARR Bottom"); found_pattern = True; pattern_name_for_csv = "Bump-and-Run Reversal Bottom"
                 else:
                     dt = cpm.top_version(cpm.double_bottoms, H, L, C)
                     pt = cpm.pipe_top(O, H, L, C)
+                    barr_top = cpm.bump_and_run_reversal(H, L, C, is_bottom=False)
                     if dt:
-                        confluence_score += 25; signals.append(f"Geometria: Topo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Top"
-                    if pt:
+                        confluence_score += 25; signals.append("Geometria: Topo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Top"
+                    elif pt:
                         confluence_score += 15; signals.append("Geometria: Tubo de Topo"); found_pattern = True
+                    elif barr_top:
+                        confluence_score += 25; signals.append("Geometria: BARR Top"); found_pattern = True; pattern_name_for_csv = "Bump-and-Run Reversal Top"
 
                 if found_pattern: knowledge_applied = True
 
-                if found_pattern and pattern_name_for_csv and os.path.exists("pattern_stats.csv"):
-                    df_stats = pd.read_csv("pattern_stats.csv")
-                    t_market = 'Bull' if is_lta else 'Bear'
-                    t_break = 'up' if is_lta else 'down'
-                    stats_match = df_stats[df_stats['pattern'].str.contains(pattern_name_for_csv, case=False, na=False)]
-                    exact_stats = stats_match[(stats_match['market'] == t_market) & (stats_match['breakout'] == t_break)]
-                    
-                    if not exact_stats.empty:
-                        win_chance = 100 - float(exact_stats.iloc[0]['break_even_failure_pct'])
-                        signals.append(f"Backtest: ~{win_chance:.0f}% Acerto")
-                        if win_chance > 70: confluence_score += 15
-        except Exception as e:
-            signals.append(f"ERRO GEOMETRIA: {str(e)[:30]}")
+                if found_pattern and pattern_name_for_csv:
+                    try:
+                        df_stats = pd.read_csv("pattern_stats.csv")
+                        t_market = 'Bull' if is_lta else 'Bear'
+                        t_break = 'up' if is_lta else 'down'
+                        stats_match = df_stats[df_stats['pattern'].str.contains(pattern_name_for_csv, case=False, na=False)]
+                        exact_stats = stats_match[(stats_match['market'] == t_market) & (stats_match['breakout'] == t_break)]
+                        
+                        if not exact_stats.empty:
+                            win_chance = 100 - float(exact_stats.iloc[0]['break_even_failure_pct'])
+                            signals.append(f"Backtest: ~{win_chance:.0f}% Acerto")
+                            if win_chance > 70: confluence_score += 15
+                    except Exception as csv_e:
+                        signals.append(f"❌ Erro CSV Estatísticas: {str(csv_e)[:30]}")
+
+            except Exception as e: signals.append(f"⚠️ Erro Geometria: {str(e)[:30]}")
+        else:
+            signals.append(f"❌ Falta Ficheiro 'chart_patterns_math.py' ({ERR_MATH[:20]})")
 
         # 3. FILTRO FINAL DE RUÍDO
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
