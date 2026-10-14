@@ -21,10 +21,12 @@ import numpy as np
 # ----------------------------------------------------------------------------
 @dataclass
 class Params:
-    zigzag_theta: float = 0.05      # reversao minima (fracao) para confirmar pivo
-    min_pivot_sep: int = 5          # barras minimas entre pivos de mesmo lado (~1 semana)
-    horiz_eps: float = 0.03         # |deriva total da reta| <= eps*preco  => "horizontal"
-    touch_tol: float = 0.02         # distancia relativa p/ contar "toque" na reta
+    # MUDAR DE 0.05 PARA 0.005 (0.5% de movimento já valida um topo/fundo em 5 minutos)
+    zigzag_theta: float = 0.005      
+    # MUDAR DE 5 PARA 3 (O mercado de 5m é mais rápido, 3 velas chegam para separar picos)
+    min_pivot_sep: int = 3          
+    horiz_eps: float = 0.005        # Reduzir de 0.03 para 0.005
+    touch_tol: float = 0.005        # Reduzir de 0.02 para 0.005
     min_touches: int = 2            # toques minimos por lado
     flag_max_bars: int = 15         # flags/pennants: duracao maxima (~3 semanas)
     wedge_min_bars: int = 15        # cunhas/triangulos: duracao minima
