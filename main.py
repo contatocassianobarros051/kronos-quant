@@ -8,10 +8,10 @@ import traceback
 import os
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V6.2 (FUSÃO DE MACRO & MICRO ESTRUTURA)
+# KRONOS QUANT CORE API // V6.3 (SMC, BALEIAS & STOP HUNTS)
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="6.2.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="6.3.0")
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
@@ -24,7 +24,7 @@ class QuantRequest(BaseModel):
 
 @app.get("/")
 async def root_health_check():
-    return {"status": "KRONOS QUANT CORE ONLINE - LENDO MICRO ESTRUTURA", "version": "6.2.0"}
+    return {"status": "KRONOS QUANT CORE ONLINE - RASTREANDO BALEIAS", "version": "6.3.0"}
 
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
@@ -90,6 +90,7 @@ async def process_quant_analysis(req: QuantRequest):
         
         confluence_score = 0
         signals = []
+        knowledge_applied = False
         
         # 1. MOTOR DIRECIONAL & PRICE ACTION LOCAL
         if is_lta:
@@ -101,31 +102,32 @@ async def process_quant_analysis(req: QuantRequest):
             if 30 <= current_rsi <= 60: confluence_score += 10
             if current_price < breakout_threshold_down: confluence_score += 20; signals.append("Quebra de Suporte")
 
-        if current_vol > (vol_sma * 1.5): confluence_score += 15; signals.append("Volume Institucional")
-
-        # 2. SABEDORIA EXTERNA (Micro e Macro Estrutura)
-        knowledge_applied = False
         H, L, C, O = df['high'].values, df['low'].values, df['close'].values, df['open'].values
 
-        # A. AÇÃO MICRO-ESTRUTURAL (NOVO MÓDULO DE VELAS JAPONESAS)
+        # 2A. AÇÃO MICRO-ESTRUTURAL (VELAS)
         try:
             if os.path.exists("candlestick_patterns.py"):
                 import candlestick_patterns as cdp
                 c_sigs, c_boost = cdp.detect_patterns(O, H, L, C)
-                
-                # Aplica os pontos dependendo da tendência da Bússola
-                if is_lta and c_boost > 0:  # Fortalece o Call
-                    confluence_score += c_boost
-                    signals.extend(c_sigs)
-                    knowledge_applied = True
-                elif not is_lta and c_boost < 0: # Fortalece o Put
-                    confluence_score += abs(c_boost)
-                    signals.extend(c_sigs)
-                    knowledge_applied = True
-        except Exception as e:
-            print(f"Erro Candlesticks: {e}")
+                if is_lta and c_boost > 0:
+                    confluence_score += c_boost; signals.extend(c_sigs); knowledge_applied = True
+                elif not is_lta and c_boost < 0:
+                    confluence_score += abs(c_boost); signals.extend(c_sigs); knowledge_applied = True
+        except Exception as e: print(f"Erro Candlesticks: {e}")
 
-        # B. AÇÃO MACRO-ESTRUTURAL (PADRÕES INSTITUCIONAIS)
+        # 2B. AÇÃO BALEIAS (SMART MONEY CONCEPTS) - NOVO!
+        try:
+            if os.path.exists("whale_tracker.py"):
+                import whale_tracker as wt
+                w_sigs, w_boost = wt.detect_whale_activity(df)
+                if is_lta and w_boost > 0:
+                    confluence_score += w_boost; signals.extend(w_sigs); knowledge_applied = True
+                elif not is_lta and w_boost < 0:
+                    confluence_score += abs(w_boost); signals.extend(w_sigs); knowledge_applied = True
+        except Exception as e:
+            signals.append(f"ERRO BALEIAS: {str(e)[:30]}")
+
+        # 2C. AÇÃO MACRO-ESTRUTURAL (BULKOWSKI)
         try:
             if os.path.exists("chart_patterns_math.py"):
                 import chart_patterns_math as cpm
@@ -136,16 +138,16 @@ async def process_quant_analysis(req: QuantRequest):
                     db = cpm.double_bottoms(H, L, C)
                     hs = cpm.head_shoulders_bottoms(H, L, C)
                     if db:
-                        confluence_score += 25; signals.append(f"Padrão: Fundo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Bottom"
+                        confluence_score += 25; signals.append(f"Geometria: Fundo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Bottom"
                     if hs:
-                        confluence_score += 25; signals.append("Padrão: OCO Invertido"); found_pattern = True
+                        confluence_score += 25; signals.append("Geometria: OCO Invertido"); found_pattern = True
                 else:
                     dt = cpm.top_version(cpm.double_bottoms, H, L, C)
                     pt = cpm.pipe_top(O, H, L, C)
                     if dt:
-                        confluence_score += 25; signals.append(f"Padrão: Topo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Top"
+                        confluence_score += 25; signals.append(f"Geometria: Topo Duplo"); found_pattern = True; pattern_name_for_csv = "Double Top"
                     if pt:
-                        confluence_score += 15; signals.append("Padrão: Tubo de Topo"); found_pattern = True
+                        confluence_score += 15; signals.append("Geometria: Tubo de Topo"); found_pattern = True
 
                 if found_pattern: knowledge_applied = True
 
@@ -161,7 +163,7 @@ async def process_quant_analysis(req: QuantRequest):
                         signals.append(f"Backtest: ~{win_chance:.0f}% Acerto")
                         if win_chance > 70: confluence_score += 15
         except Exception as e:
-            signals.append(f"ERRO DE ARQUIVO: {str(e)[:30]}")
+            signals.append(f"ERRO GEOMETRIA: {str(e)[:30]}")
 
         # 3. FILTRO FINAL DE RUÍDO
         l2_div = calculate_l2_divergence(df['close'], df['mme20'])
@@ -170,7 +172,7 @@ async def process_quant_analysis(req: QuantRequest):
 
         confluence_score = max(0.0, min(round(confluence_score, 2), 100.0))
         
-        if confluence_score >= 80: verdict = "FORÇA TOTAL INSTITUCIONAL"
+        if confluence_score >= 80: verdict = "FORÇA INSTITUCIONAL DETETADA"
         elif confluence_score >= 60: verdict = "MOMENTUM MODERADO"
         else: verdict = "AGUARDAR (SEM ENTRADA CLARA)"
 
