@@ -32,10 +32,10 @@ except Exception as e:
     ERR_MATH = str(e)
 
 # ==============================================================================
-# KRONOS QUANT CORE API // V8.5 (3.000 VELAS | CRIPTO & FOREX | 1m A 1h)
+# KRONOS QUANT CORE API // V9.2 (MASTER SYNC: 3.000 VELAS | CRIPTO & FOREX | 1m A 4h)
 # ==============================================================================
 
-app = FastAPI(title="KRONOS QUANT PRO", version="8.5.0")
+app = FastAPI(title="KRONOS QUANT PRO", version="9.2.0")
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
@@ -46,7 +46,7 @@ class QuantRequest(BaseModel):
     timeframe: str = "30m"
     capital_usd: float = 1000.0
 
-# Mapa de Hierarquia Fractal (Timeframe Operacional -> Timeframe Âncora Macro)
+# Mapa de Hierarquia Fractal (Timeframe Operacional -> Timeframe Âncora Macro Institucional)
 HTF_MAP = {
     "1m": "5m",
     "2m": "15m",
@@ -55,18 +55,26 @@ HTF_MAP = {
     "15m": "1h",
     "30m": "2h",
     "45m": "2h",
-    "1h": "4h"
+    "1h": "4h",
+    "2h": "4h",
+    "3h": "4h",
+    "4h": "1d"
 }
 
-# Duração em milissegundos dos timeframes nativos para Paginação Paralela
+# Duração exata em milissegundos de todos os timeframes para Paginação Paralela
 TF_MS = {
     "1m": 60_000,
+    "2m": 120_000,
+    "3m": 180_000,
     "5m": 300_000,
     "15m": 900_000,
     "30m": 1_800_000,
+    "45m": 2_700_000,
     "1h": 3_600_000,
     "2h": 7_200_000,
-    "4h": 14_400_000
+    "3h": 10_800_000,
+    "4h": 14_400_000,
+    "1d": 86_400_000
 }
 
 L2_NOISE_THRESHOLD = {
@@ -77,7 +85,10 @@ L2_NOISE_THRESHOLD = {
     "15m": 0.020,
     "30m": 0.025,
     "45m": 0.028,
-    "1h": 0.032
+    "1h": 0.032,
+    "2h": 0.036,
+    "3h": 0.040,
+    "4h": 0.045
 }
 
 FOREX_PAIRS = {"EUR/USD", "GBP/USD", "USD/JPY"}
@@ -88,8 +99,8 @@ CACHE_TTL_SEC = 8.0
 @app.get("/")
 async def root_health_check():
     return {
-        "status": "KRONOS QUANT CORE ONLINE - MOTOR V8.5 (3.000 VELAS | CRIPTO & FOREX | 1m A 1h)",
-        "version": "8.5.0"
+        "status": "KRONOS QUANT CORE ONLINE - MASTER SYNC V9.2 (3.000 VELAS | 1m A 4h | CRIPTO & FOREX)",
+        "version": "9.2.0"
     }
 
 def is_forex_symbol(symbol: str) -> bool:
@@ -105,8 +116,8 @@ def get_price_decimals(symbol: str) -> int:
 
 def get_calibrated_params(tf: str, symbol: str):
     """
-    Calibra a geometria de Bulkowski de acordo com o Timeframe (1m a 1h)
-    e ajusta a escala automaticamente caso o ativo seja Forex (menor amplitude % por vela).
+    Calibra a régua geométrica de Thomas Bulkowski para cada Timeframe (1m até 4h)
+    e aplica escala reduzida automática (0.35x) para pares de Forex.
     """
     if not HAS_MATH:
         return None
@@ -136,11 +147,17 @@ def get_calibrated_params(tf: str, symbol: str):
             touch_tol=0.006 * fx_scale, twin_tol=0.018 * fx_scale, twin_min_rise=0.008 * fx_scale,
             twin_sep=(4, 65), hs_shoulder_tol=0.030 * fx_scale
         )
-    else:  # 1h ou superior
+    elif tf == "1h":
         return cpm.Params(
             zigzag_theta=0.0120 * fx_scale, min_pivot_sep=3, horiz_eps=0.010 * fx_scale,
             touch_tol=0.008 * fx_scale, twin_tol=0.022 * fx_scale, twin_min_rise=0.010 * fx_scale,
             twin_sep=(4, 70), hs_shoulder_tol=0.035 * fx_scale
+        )
+    else:  # 2h, 3h, 4h, 1d
+        return cpm.Params(
+            zigzag_theta=0.0160 * fx_scale, min_pivot_sep=3, horiz_eps=0.012 * fx_scale,
+            touch_tol=0.010 * fx_scale, twin_tol=0.025 * fx_scale, twin_min_rise=0.012 * fx_scale,
+            twin_sep=(4, 75), hs_shoulder_tol=0.040 * fx_scale
         )
 
 def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
@@ -161,7 +178,7 @@ def calculate_atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
 def detect_structural_pivots(df: pd.DataFrame, window: int = 5):
     df['is_high_pivot'] = df['high'] == df['high'].rolling(window=window, center=True).max()
     df['is_low_pivot'] = df['low'] == df['low'].rolling(window=window, center=True).min()
-    recent = df.iloc[-45:]
+    recent = df.iloc[-60:]
     recent_highs = recent[recent['is_high_pivot']]['high'].values
     recent_lows = recent[recent['is_low_pivot']]['low'].values
     highest_res = np.max(recent_highs) if len(recent_highs) > 0 else recent['high'].max()
@@ -183,7 +200,7 @@ def calculate_l2_divergence(close_series: pd.Series, ma_series: pd.Series) -> fl
     return float(l2_norm / np.mean(close_series.tail(10).values))
 
 def resample_ohlcv_bars(bars: list, rule: str) -> list:
-    """Agrega velas matematicamente para construir gráficos exatos de 2m, 3m e 45m."""
+    """Agrega velas matematicamente para construir gráficos exatos de 2m, 3m, 45m, 2h e 3h."""
     df_raw = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     df_raw['dt'] = pd.to_datetime(df_raw['timestamp'], unit='ms')
     df_raw.set_index('dt', inplace=True)
@@ -199,10 +216,9 @@ def resample_ohlcv_bars(bars: list, rule: str) -> list:
 
 async def fetch_3000_ohlcv(symbol: str, timeframe: str, target_bars: int = 3000) -> list:
     """
-    Roteador Assíncrono de 3.000 Velas:
-    - Cripto (BTC, ETH, SOL, PAXG): Paginação em 3 blocos via Binance.US.
-    - Forex (EUR/USD, GBP/USD, USD/JPY): Extração via Kraken FX Institucional.
-    - Reconstrói matematicamente os tempos de 2m, 3m e 45m.
+    Paginação Paralela Assíncrona de 3.000 Velas:
+    - Suporta Cripto (Binance.US) e Forex (Kraken FX).
+    - Sintetiza matematicamente 2m, 3m, 45m, 2h e 3h sem quebrar nenhuma API.
     """
     now_sec = time.time()
     cache_key = f"{symbol}_{timeframe}_{target_bars}"
@@ -211,37 +227,43 @@ async def fetch_3000_ohlcv(symbol: str, timeframe: str, target_bars: int = 3000)
         if now_sec - cached_time < CACHE_TTL_SEC:
             return cached_data
 
-    # Define o timeframe base nativo na corretora para agregação se for 2m, 3m ou 45m
-    if timeframe in ("2m", "3m"):
-        base_tf = "1m"
+    use_kraken = symbol.upper() in FOREX_PAIRS
+
+    # Determina o timeframe nativo da corretora e a regra de agregação (se necessário)
+    resample_rule = None
+    if timeframe == "2m":
+        base_tf = "1m"; resample_rule = "2min"
+    elif timeframe == "3m":
+        base_tf = "1m" if use_kraken else "3m"
+        resample_rule = "3min" if use_kraken else None
     elif timeframe == "45m":
-        base_tf = "15m"
+        base_tf = "15m"; resample_rule = "45min"
+    elif timeframe == "2h":
+        base_tf = "1h" if use_kraken else "2h"
+        resample_rule = "2h" if use_kraken else None
+    elif timeframe == "3h":
+        base_tf = "1h"; resample_rule = "3h"
     else:
         base_tf = timeframe
 
     step_ms = TF_MS.get(base_tf, 1_800_000)
     now_ms = int(now_sec * 1000)
 
-    use_kraken = symbol.upper() in FOREX_PAIRS
     exchange = ccxt_async.kraken({'enableRateLimit': True}) if use_kraken else ccxt_async.binanceus({'enableRateLimit': True})
 
     try:
-        # Kraken usa '1h', '4h', etc., mas para 2h usamos 1h e agregamos se necessário
-        fetch_tf = "1h" if (use_kraken and base_tf == "2h") else base_tf
-
         since_batch_1 = now_ms - (3000 * step_ms)
         since_batch_2 = now_ms - (2000 * step_ms)
 
         async def safe_fetch(since_val):
             try:
                 if since_val is None:
-                    return await exchange.fetch_ohlcv(symbol, fetch_tf, limit=1000)
-                return await exchange.fetch_ohlcv(symbol, fetch_tf, since=since_val, limit=1000)
+                    return await exchange.fetch_ohlcv(symbol, base_tf, limit=1000)
+                return await exchange.fetch_ohlcv(symbol, base_tf, since=since_val, limit=1000)
             except Exception:
                 return []
 
         if use_kraken:
-            # Kraken devolve até 720 velas diretas ou paginadas
             b1, b2 = await asyncio.gather(
                 safe_fetch(now_ms - (1400 * step_ms)),
                 safe_fetch(None)
@@ -258,22 +280,15 @@ async def fetch_3000_ohlcv(symbol: str, timeframe: str, target_bars: int = 3000)
         await exchange.close()
 
         if not combined:
-            raise ValueError(f"Sem dados retornados para {symbol} ({timeframe}).")
+            raise ValueError(f"Sem dados retornados da corretora para {symbol} ({timeframe}).")
 
         df_raw = pd.DataFrame(combined, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
         df_raw.drop_duplicates(subset='timestamp', keep='last', inplace=True)
         df_raw.sort_values('timestamp', inplace=True)
         clean_bars = df_raw.values.tolist()[-target_bars:]
 
-        # Agregação exata para 2m, 3m, 45m ou 2h no Kraken
-        if timeframe == "2m":
-            clean_bars = resample_ohlcv_bars(clean_bars, "2min")
-        elif timeframe == "3m":
-            clean_bars = resample_ohlcv_bars(clean_bars, "3min")
-        elif timeframe == "45m":
-            clean_bars = resample_ohlcv_bars(clean_bars, "45min")
-        elif use_kraken and base_tf == "2h":
-            clean_bars = resample_ohlcv_bars(clean_bars, "2h")
+        if resample_rule:
+            clean_bars = resample_ohlcv_bars(clean_bars, resample_rule)
 
         OHLCV_CACHE[cache_key] = (now_sec, clean_bars)
         return clean_bars
@@ -301,7 +316,7 @@ async def process_quant_analysis(req: QuantRequest):
         fx_mode = is_forex_symbol(req.symbol)
 
         # ======================================================================
-        # 0. EXTRAÇÃO PROFUNDA ASSÍNCRONA (OPERACIONAL + MACRO ÂNCORA)
+        # 0. EXTRAÇÃO ASSÍNCRONA PARALELA (3.000 VELAS OPERACIONAIS + MACRO)
         # ======================================================================
         bars_ltf, bars_htf = await asyncio.gather(
             fetch_3000_ohlcv(req.symbol, req.timeframe, target_bars=3000),
@@ -312,16 +327,21 @@ async def process_quant_analysis(req: QuantRequest):
         df_htf = enrich_dataframe(bars_htf)
         total_candles_loaded = len(df)
 
+        if total_candles_loaded < 30:
+            raise HTTPException(status_code=400, detail="Histórico insuficiente para análise institucional.")
+
         res_zone, sup_zone = detect_structural_pivots(df, window=5)
         poc_macro_price = calculate_volume_profile_poc(df, bins=50)
 
-        # Telemetria Operacional Atual
+        # Telemetria do Timeframe Operacional
         last_idx = df.index[-1]
         current_price = float(df.at[last_idx, 'close'])
         current_atr = float(df.at[last_idx, 'atr'])
         current_rsi = float(df.at[last_idx, 'rsi'])
         current_vol = float(df.at[last_idx, 'volume'])
         vol_sma = float(df.at[last_idx, 'volume_sma'])
+        mme5_val = float(df.at[last_idx, 'mme5'])
+        mme20_val = float(df.at[last_idx, 'mme20'])
         mme100_val = float(df.at[last_idx, 'mme100'])
         mme200_val = float(df.at[last_idx, 'mme200'])
         is_lta = current_price > mme100_val
@@ -340,7 +360,7 @@ async def process_quant_analysis(req: QuantRequest):
         dynamic_target = current_price + (current_atr * 3.0) if is_lta else current_price - (current_atr * 3.0)
 
         confluence_score = 0.0
-        signals = [f"📊 Profundidade: {total_candles_loaded} velas ({req.timeframe})"]
+        signals = [f"📊 Profundidade: {total_candles_loaded} velas ({req.timeframe} ➔ Âncora {htf_timeframe})"]
         knowledge_applied = False
 
         break_tol_up = 0.9997 if fx_mode else 0.999
@@ -350,7 +370,7 @@ async def process_quant_analysis(req: QuantRequest):
         # 1. ESTRUTURA PROFUNDA (MME200 + VOLUME PROFILE POC + PRICE ACTION)
         # ======================================================================
         if is_lta:
-            if df.at[last_idx, 'mme5'] > df.at[last_idx, 'mme20']:
+            if mme5_val > mme20_val:
                 confluence_score += 15; signals.append(f"Médias {req.timeframe} Alinhadas (Alta)")
             if mme100_val > mme200_val and current_price > mme200_val:
                 confluence_score += 10; signals.append("Acima da MME200 Institucional (+10%)")
@@ -361,7 +381,7 @@ async def process_quant_analysis(req: QuantRequest):
             if current_price >= res_zone * break_tol_up:
                 confluence_score += 15; signals.append("Pressão / Fuga de Resistência")
         else:
-            if df.at[last_idx, 'mme5'] < df.at[last_idx, 'mme20']:
+            if mme5_val < mme20_val:
                 confluence_score += 15; signals.append(f"Médias {req.timeframe} Alinhadas (Baixa)")
             if mme100_val < mme200_val and current_price < mme200_val:
                 confluence_score += 10; signals.append("Abaixo da MME200 Institucional (+10%)")
@@ -529,9 +549,12 @@ async def process_quant_analysis(req: QuantRequest):
             "telemetry": {
                 "symbol": req.symbol,
                 "price": round(current_price, decimals),
+                "trend_direction": "LTA" if is_lta else "LTB",
+                "htf_direction": "LTA" if is_htf_lta else "LTB",
                 "rsi_14": round(current_rsi, 2),
                 "atr_14": round(current_atr, decimals),
                 "poc_3000": round(poc_macro_price, decimals),
+                "poc_macro": round(poc_macro_price, decimals),
                 "candles_analyzed": total_candles_loaded,
                 "l2_divergence": round(l2_div, 6),
                 "market_state": "ESTÁVEL" if is_stable else "ESTI-CADO",
